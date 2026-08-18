@@ -518,7 +518,7 @@
                 },
                 "custom_fields": {
                   "type": "object",
-                  "description": "Any data you want echoed back in the response, such as a CRM record id. Keys are free-form; `uuid` and `list_name` below are only an example.",
+                  "description": "Any data you want echoed back in the response, such as a CRM record id. Keys are free-form; `uuid` and `list_name` below are only an example.\n\nSent as an object, returned as an array of `{ name, value, position }` entries.",
                   "properties": {
                     "uuid": {
                       "type": "string"
@@ -1339,9 +1339,24 @@
           "custom_fields": {
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The key you sent."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The value you sent."
+                },
+                "position": {
+                  "type": "integer",
+                  "description": "Index of the field in the object you sent."
+                }
+              }
             },
-            "description": "Empty for Lead Finder results. Only enrichment requests echo custom fields back."
+            "description": "Empty for Lead Finder results. Only enrichment requests echo custom fields back.",
+            "example": []
           }
         }
       },
@@ -1441,18 +1456,34 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "Echoed back exactly as submitted in the request. Use it to reconcile results with your own records.",
             "items": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The key you sent."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The value you sent."
+                },
+                "position": {
+                  "type": "integer",
+                  "description": "Index of the field in the object you sent."
+                }
+              }
             },
+            "description": "Your custom fields, echoed back.\n\n**The shape differs from the request**: you send an object, you get back an array of `{ name, value, position }` entries, one per key. Look the field up by `name`, do not index by position.",
             "example": [
               {
                 "name": "uuid",
-                "value": "crm-8821"
+                "value": "crm-8821",
+                "position": 0
               },
               {
                 "name": "list_name",
-                "value": "Q3 outbound"
+                "value": "Q3 outbound",
+                "position": 1
               }
             ]
           },

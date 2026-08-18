@@ -67,6 +67,9 @@ waiting for the slowest lead.
 The payload sent to `contact_webhook` is a **single flat object**, not the batch envelope. It always
 carries `request_id`, `enriched`, `custom_fields` and the enriched contact fields.
 
+Note that `custom_fields` comes back as an array of `{ name, value, position }` entries even though
+you sent an object. Look your field up by `name`.
+
 ```json Per lead payload
 {
   "request_id": "fefbc2203558eb3adcea",
@@ -76,7 +79,7 @@ carries `request_id`, `enriched`, `custom_fields` and the enriched contact field
   "contact_email_address": "elon@tesla.com",
   "contact_email_address_status": "deliverable",
   "company_domain": "tesla.com",
-  "custom_fields": [{ "name": "uuid", "value": "crm-8821" }]
+  "custom_fields": [{ "name": "uuid", "value": "crm-8821", "position": 0 }]
 }
 ```
 
