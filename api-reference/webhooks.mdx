@@ -1,0 +1,93 @@
+---
+title: "Webhooks"
+description: "Get results pushed to you instead of polling"
+---
+
+Every async endpoint accepts a `webhook` attribute. When you provide one, BetterContact posts the
+results to that URL as soon as the request is done, and you never have to poll.
+
+```json Request
+{
+  "webhook": "https://example.com/hooks/bettercontact",
+  "enrich_email_address": true,
+  "data": [
+    { "first_name": "Elon", "last_name": "Musk", "company_domain": "tesla.com" }
+  ]
+}
+```
+
+## How the call is made
+
+| | |
+| --- | --- |
+| Method | `POST` |
+| Content type | `application/json` |
+| Body | Exactly the payload you would get from the matching `GET` endpoint |
+| Success | Any `2xx` response |
+| Retries | Up to 5 attempts, then the request is abandoned |
+| Backoff | 10s after the 1st failure, then 2min, 3min, 4min |
+| Timing | Sent once, when the whole request reaches `terminated` |
+
+<Note>
+  The body of the enrichment webhook is identical to
+  [`GET /async/{request_id}`](/api-reference/endpoint/get), and the body of the Lead Finder webhook
+  is identical to
+  [`GET /lead_finder/async/{request_id}`](/api-reference/endpoint/lead_finder_get). There is no
+  separate envelope and no event type to switch on.
+</Note>
+
+Answer `200` as soon as you have persisted the payload, and do the actual processing afterwards. A
+slow endpoint that times out counts as a failed attempt.
+
+## No signature
+
+Webhook calls carry **no signature header and no authentication**. Treat the webhook URL itself as a
+secret: give it a long unguessable path, and do not expose it anywhere public.
+
+If you need certainty about the origin of a payload, do not trust the body directly. Read the `id`
+it carries and call `GET /async/{id}` with your API key to confirm.
+
+## Per lead webhooks
+
+On the enrichment API, `push_contact_individually` changes the delivery model: instead of one call
+with the whole batch at the end, each lead is pushed to `contact_webhook` as soon as it is enriched.
+This is useful for batches of 100 where you would rather start working on the first results without
+waiting for the slowest lead.
+
+```json Request
+{
+  "webhook": "https://example.com/hooks/bettercontact",
+  "contact_webhook": "https://example.com/hooks/bettercontact/contact",
+  "push_contact_individually": true,
+  "enrich_email_address": true,
+  "data": [ "..." ]
+}
+```
+
+The payload sent to `contact_webhook` is a **single flat object**, not the batch envelope. It always
+carries `request_id`, `enriched`, `custom_fields` and the enriched contact fields.
+
+```json Per lead payload
+{
+  "request_id": "fefbc2203558eb3adcea",
+  "enriched": true,
+  "contact_first_name": "Elon",
+  "contact_last_name": "Musk",
+  "contact_email_address": "elon@tesla.com",
+  "contact_email_address_status": "deliverable",
+  "company_domain": "tesla.com",
+  "custom_fields": [{ "name": "uuid", "value": "crm-8821" }]
+}
+```
+
+<Warning>
+  Per lead calls are **not retried**. Keep `webhook` set alongside `contact_webhook` so the full
+  batch payload still reaches you at the end, and use it to reconcile anything you missed.
+</Warning>
+
+## Testing
+
+Point `webhook` at a request bin while you build, then submit a single lead. Every attempt is logged
+on our side with its HTTP status and the response body we received, so if nothing arrives, open the
+request in [your BetterContact account](https://app.bettercontact.rocks) or ask support to read the
+attempts back to you.

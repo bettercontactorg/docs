@@ -1,0 +1,121 @@
+---
+title: "Request statuses"
+description: "How to know when an async request is really done"
+---
+
+Both the enrichment API and the Lead Finder API are asynchronous. You submit a request, you get a
+`request_id` back immediately, and the work happens in the background.
+
+<Warning>
+  **Always branch on `status`, never on the HTTP status code alone.**
+
+  While a request is running, the `GET` endpoints answer `202 Accepted` with a body that has **no
+  `data`** (enrichment) and **no `leads`** (Lead Finder). Many HTTP clients treat every `2xx` as
+  success, so an integration that only checks `response.ok` reads an empty result and wrongly
+  concludes that nothing was found.
+</Warning>
+
+## Lifecycle
+
+<Steps>
+  <Step title="Submit">
+    `POST /async` answers `201`, `POST /lead_finder/async` answers `202`. The body carries the
+    identifier you will poll on: `id` for enrichment, `request_id` for Lead Finder.
+  </Step>
+  <Step title="Processing">
+    The `GET` endpoint answers `202` with `status: "processing"` and a `message`. No `data`, no
+    `leads`, no `summary`.
+  </Step>
+  <Step title="Done">
+    The `GET` endpoint answers `200` with `status: "terminated"`. `summary` and the results array
+    are now present.
+  </Step>
+</Steps>
+
+## Status values
+
+| `status` | HTTP | Meaning |
+| --- | --- | --- |
+| `not_started` | `202` | Accepted, queued, not picked up yet. |
+| `processing` | `202` | Running. Poll again later. |
+| `on_hold` | `200` | Paused because the account ran out of credits. Top up and the request resumes on its own, no need to resubmit. |
+| `terminated` | `200` | Finished. This is the only status that guarantees results are present. |
+
+<Note>
+  A Lead Finder search that matched nothing is reported as `terminated` with an empty `leads` array
+  and `summary.leads_found` at `0`. It is a normal outcome, not an error.
+</Note>
+
+## Polling recipe
+
+Prefer a [webhook](/api-reference/webhooks) whenever you can. When you do have to poll, wait a few
+seconds between attempts and stop on `terminated`, keeping an eye on the
+[rate limit](/api-reference/api_rate_limits) of 60 requests per minute.
+
+<CodeGroup>
+
+```javascript Node.js
+async function waitForResults(requestId, apiKey, { timeoutMs = 300000 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const res = await fetch(
+      `https://app.bettercontact.rocks/api/v2/async/${requestId}`,
+      { headers: { "X-API-Key": apiKey } }
+    );
+
+    if (res.status === 401) throw new Error("Invalid API key");
+    if (res.status === 406) throw new Error("Unknown request_id");
+
+    const body = await res.json();
+
+    // Branch on `status`, not on `res.ok`.
+    if (body.status === "terminated") return body;
+    if (body.status === "on_hold") throw new Error("Out of credits, top up to resume");
+
+    await new Promise((r) => setTimeout(r, 5000));
+  }
+
+  throw new Error("Timed out waiting for results");
+}
+```
+
+```python Python
+import time
+import requests
+
+def wait_for_results(request_id, api_key, timeout=300):
+    deadline = time.time() + timeout
+
+    while time.time() < deadline:
+        res = requests.get(
+            f"https://app.bettercontact.rocks/api/v2/async/{request_id}",
+            headers={"X-API-Key": api_key},
+        )
+        if res.status_code == 401:
+            raise RuntimeError("Invalid API key")
+        if res.status_code == 406:
+            raise RuntimeError("Unknown request_id")
+
+        body = res.json()
+
+        # Branch on `status`, not on the HTTP code.
+        if body["status"] == "terminated":
+            return body
+        if body["status"] == "on_hold":
+            raise RuntimeError("Out of credits, top up to resume")
+
+        time.sleep(5)
+
+    raise TimeoutError("Timed out waiting for results")
+```
+
+</CodeGroup>
+
+For Lead Finder, use `GET /lead_finder/async/{request_id}` and treat `404` as the unknown-id case
+instead of `406`.
+
+## Per lead status
+
+Inside a terminated enrichment, each row of `data` carries its own `enriched` boolean. A batch can
+be `terminated` while some of its leads could not be enriched. Check `enriched` before using a row.

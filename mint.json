@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "API Documentation",
+  "name": "BetterContact",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -51,19 +51,19 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["quickstart"]
+      "pages": [
+        "quickstart"
+      ]
     },
     {
-      "group": "API Documentation",
+      "group": "Using the API",
       "pages": [
-          "api-reference/authentication",
-          "api-reference/api_rate_limits"
-        ]
-    },
-    {
-      "group": "My account",
-      "pages": [
-        "api-reference/endpoint/account"
+        "api-reference/authentication",
+        "api-reference/statuses",
+        "api-reference/webhooks",
+        "api-reference/errors",
+        "api-reference/credits",
+        "api-reference/api_rate_limits"
       ]
     },
     {
@@ -79,6 +79,12 @@
       "pages": [
         "api-reference/endpoint/create",
         "api-reference/endpoint/get"
+      ]
+    },
+    {
+      "group": "My account",
+      "pages": [
+        "api-reference/endpoint/account"
       ]
     }
   ],

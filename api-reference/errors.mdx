@@ -1,0 +1,96 @@
+---
+title: "Errors"
+description: "Every status code the API can return, and what to do about it"
+---
+
+## Error shape
+
+Errors are returned as JSON. The human readable text sits either in `error` or in `message`
+depending on the endpoint, so read both.
+
+```json
+{
+  "success": false,
+  "error": "Bad request. Please check documentation"
+}
+```
+
+<Note>
+  `2xx` does not mean the results are ready. The `GET` endpoints answer `202` while a request is
+  still running. See [Request statuses](/api-reference/statuses).
+</Note>
+
+## Status codes
+
+| Code | Meaning | What to do |
+| --- | --- | --- |
+| `200` | Request finished. Check `status` in the body before using the results. | Read `status`. |
+| `201` | Enrichment accepted. | Keep the returned `id`. |
+| `202` | Accepted, or still running on the `GET` endpoints. | Poll again, or wait for the webhook. |
+| `400` | Malformed request. | Fix the payload, do not retry as is. |
+| `401` | API key missing, invalid or deactivated. | Check the `X-API-Key` header. |
+| `402` | Out of credits, or the feature is not on your plan. | Read `message` to tell the two apart. |
+| `404` | Unknown Lead Finder `request_id`. | Check the id, do not retry. |
+| `406` | Unknown enrichment `request_id`. | Check the id, do not retry. |
+| `422` | The request could not be accepted. | Read `message`, do not retry as is. |
+| `429` | [Rate limit](/api-reference/api_rate_limits) exceeded, 60 requests per minute per account. | Back off and retry. |
+| `500` | Unexpected error on our side. | Safe to retry with backoff. |
+
+<Warning>
+  `404` and `406` both mean "unknown request id", but they are **not interchangeable**: the
+  enrichment endpoint answers `406` and the Lead Finder endpoint answers `404`. Handle both if your
+  client talks to the two APIs.
+</Warning>
+
+## Messages you are likely to hit
+
+### 400 Bad request
+
+| Message | Cause |
+| --- | --- |
+| `Bad request. Please check documentation` | `data` is missing, or it is not an array. |
+| `No more than 100 contacts allowed in a single batch call` | The `data` array holds more than 100 leads. Split it. |
+| `Filters parameter is required.` | The Lead Finder request has no `filters` object. |
+| `Filters parameter is invalid. Include and Exclude can not be blank` | Every filter is empty. At least one value is required. |
+
+### 401 Unauthorized
+
+| Message | Cause |
+| --- | --- |
+| `Your are not authorized. Please check your api_key.` | The key is missing, wrong, or was deactivated. |
+
+Find your key in [your API settings](https://app.bettercontact.rocks/api_requests). It travels in
+the `X-API-Key` header, not in an `Authorization: Bearer` header.
+
+### 402 Payment required
+
+| Message | Cause |
+| --- | --- |
+| `You ran out of credits` | The account balance is empty. |
+| `You do not have enough tokens to use Lead Finder API.` | Same, on the Lead Finder API. |
+| `You don't have access to phone number enrichment feature. Please upgrade your plan.` | `enrich_phone_number` is `true` without the phone add-on. |
+| `You don't have access to verify catch_all feature. Please upgrade your plan.` | `verify_catch_all` is `true` without the catch-all add-on. |
+
+<Note>
+  A `402` on submission is different from the `on_hold` status. `402` means the request was refused.
+  `on_hold` means an accepted request paused mid-flight because the balance hit zero. Top up and it
+  resumes on its own. See [Credits](/api-reference/credits).
+</Note>
+
+### 422 Unprocessable
+
+| Message | Cause |
+| --- | --- |
+| `You are out of free lead finder requests. Please upgrade your plan to continue using this feature.` | The free search quota is exhausted. |
+| `You're looking to enrich a company, please use dedicated endpoint: /api/v2/single_search/company` | The search targets a single company domain with `limit: 1` and no other filter. That is a company lookup, not a search. |
+| `Lead finder was not accepted.` | The request failed validation, most often `limit`, `offset` or `max_leads` out of bounds. |
+
+## Retry policy
+
+Retry `429` and `500` with exponential backoff. Never retry `400`, `401`, `404`, `406` or `422`
+unchanged: the same request will fail the same way. For `402`, top up first.
+
+Submissions are **not idempotent**. Retrying a `POST` that actually succeeded creates a second
+request and consumes credits twice. When a `POST` times out with no response body, poll
+[`GET /account`](/api-reference/endpoint/account) or check your requests in the app before
+resubmitting.

@@ -1,0 +1,62 @@
+---
+title: "Credits"
+description: "When credits are consumed, and what happens when you run out"
+---
+
+## When a credit is consumed
+
+Credits are consumed **per valid data point returned**, not per API call and not per provider tried.
+
+- A lead whose email comes back `deliverable` consumes credits.
+- A lead whose email comes back `undeliverable`, or for which nothing was found, does not.
+- The same rule applies to mobile phone numbers: a number that fails verification is not charged.
+- The waterfall may query several providers for a single lead. You are charged once for the result,
+  not once per provider.
+- A Lead Finder search on its own does not consume enrichment credits. Setting
+  `enrich_email_address` or `enrich_phone_number` on the search does.
+
+<Note>
+  Catch-all emails are charged when catch-all verification is off. When it is on, only emails that
+  come back `catch_all_safe` are charged.
+</Note>
+
+Every result payload carries `credits_consumed` for that request and `credits_left` for the account,
+so you can reconcile without a second call.
+
+## Checking your balance
+
+```bash
+curl https://app.bettercontact.rocks/api/v2/account \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+```json Response
+{
+  "success": true,
+  "credits_left": 32377,
+  "email": "you@yourcompany.com"
+}
+```
+
+The balance is shared across your whole organisation, not per user and not per API key.
+
+## Running out
+
+There are two distinct behaviours, and they are easy to confuse.
+
+<AccordionGroup>
+  <Accordion title="The balance is empty when you submit" icon="ban">
+    The request is refused with [`402`](/api-reference/errors). Nothing is queued, nothing is
+    charged, and there is no `request_id` to poll. Top up, then submit again.
+  </Accordion>
+  <Accordion title="The balance hits zero mid-flight" icon="pause">
+    The request switches to the `on_hold` status. It is **not** lost: top up and it resumes on its
+    own. Do not resubmit, or you will pay twice for the leads already processed. See
+    [Request statuses](/api-reference/statuses).
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Submissions are not idempotent. A retried `POST` that had actually succeeded creates a second
+  request and consumes credits twice.
+</Warning>
