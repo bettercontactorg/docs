@@ -2,11 +2,13 @@
   "openapi": "3.0.1",
   "info": {
     "title": "BetterContact API",
-    "description": "The official BetterContact API to enrich your contacts list and find leads",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "description": "The official BetterContact API to find new leads and enrich them with verified work emails and mobile phone numbers.",
+    "version": "2.0.0",
+    "contact": {
+      "name": "BetterContact Support",
+      "email": "contact@bettercontact.rocks",
+      "url": "https://doc.bettercontact.rocks"
+    }
   },
   "servers": [
     {
@@ -21,8 +23,9 @@
   "paths": {
     "/async": {
       "post": {
-        "description": "Create a new enrichment",
-        "parameters": [],
+        "summary": "Enrich leads",
+        "operationId": "createEnrichment",
+        "description": "Submit between 1 and 100 leads for waterfall email and phone enrichment.\n\nThis endpoint is asynchronous: it answers immediately with a `id` (the `request_id`) and enriches in the background. Retrieve the results with [`GET /async/{request_id}`](/api-reference/endpoint/get), or provide a `webhook` to have them pushed to you.",
         "requestBody": {
           "description": "Data to enrich",
           "required": true,
@@ -34,9 +37,14 @@
             }
           }
         },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "responses": {
           "201": {
-            "description": "Enrichment task created",
+            "description": "Enrichment request accepted. Poll `GET /async/{request_id}` or wait for the webhook.",
             "content": {
               "application/json": {
                 "schema": {
@@ -59,8 +67,22 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request. The `data` attribute is missing or is not an array, or the batch exceeds 100 leads.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Bad request. Please check documentation"
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized. The API key is missing, invalid or deactivated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -68,19 +90,43 @@
                 }
               }
             }
+          },
+          "402": {
+            "description": "Payment required. Either the account has no credits left, or the requested feature (`enrich_phone_number`, `verify_catch_all`) is not enabled on the current plan. Read `message` to tell them apart.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "message": "You ran out of credits"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error. Safe to retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An error occured"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
+        }
       }
     },
     "/lead_finder/async": {
       "post": {
-        "description": "Create a new lead finder request to find people working in specific companies",
-        "parameters": [],
+        "summary": "New Lead Finder search",
+        "operationId": "createLeadFinderSearch",
+        "description": "Find new leads from company and people criteria.\n\nThis endpoint is asynchronous: it answers immediately with a `request_id` and searches in the background. Retrieve the results with [`GET /lead_finder/async/{request_id}`](/api-reference/endpoint/lead_finder_get), or provide a `webhook` to have them pushed to you.\n\nSeveral filters only accept exact values from a fixed list. See [Taxonomies](/api-reference/taxonomies).",
         "requestBody": {
           "description": "Filters and parameters for lead finding",
           "required": true,
@@ -92,9 +138,14 @@
             }
           }
         },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "responses": {
-          "201": {
-            "description": "Lead finder request accepted",
+          "202": {
+            "description": "Lead Finder request accepted. Poll `GET /lead_finder/async/{request_id}` or wait for the webhook.",
             "content": {
               "application/json": {
                 "schema": {
@@ -117,8 +168,22 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request. The `filters` object is missing, or every filter is empty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Filters parameter is invalid. Include and Exclude can not be blank"
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized. The API key is missing, invalid or deactivated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -126,39 +191,77 @@
                 }
               }
             }
+          },
+          "402": {
+            "description": "Payment required. The account has no credits left.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "You do not have enough tokens to use Lead Finder API."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable. The free Lead Finder search quota is exhausted, the request could not be created, or the search is a single company lookup that belongs on `POST /single_search/company`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "message": "You are out of free lead finder requests. Please upgrade your plan to continue using this feature."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error. Safe to retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An error occured"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
+        }
       }
     },
     "/account": {
       "get": {
         "summary": "Check your credits balance",
+        "operationId": "getAccount",
+        "description": "Returns the credit balance of the account the API key belongs to.\n\nAuthentication uses the `X-API-Key` header like every other endpoint. The `api_key` query parameter is a legacy alternative kept for backward compatibility; the `email` query parameter is ignored and the email is always resolved from the key.",
         "parameters": [
-          {
-            "name": "email",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
-          },
           {
             "name": "api_key",
             "in": "query",
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "required": true
+            "deprecated": true,
+            "description": "Legacy alternative to the `X-API-Key` header. Prefer the header."
+          }
+        ],
+        "security": [
+          {
+            "apiKey": []
           }
         ],
         "responses": {
           "200": {
-            "description": "Credit balance retrieved successfully",
+            "description": "Credit balance retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -170,11 +273,13 @@
                     },
                     "credits_left": {
                       "type": "integer",
-                      "example": 32377
+                      "example": 32377,
+                      "description": "Credits remaining on the account, across the whole organisation."
                     },
                     "email": {
                       "type": "string",
-                      "example": "your_email@mycompany.com"
+                      "example": "your_email@mycompany.com",
+                      "description": "Email of the account the API key belongs to."
                     }
                   }
                 }
@@ -182,7 +287,7 @@
             }
           },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized. The API key is missing, invalid or deactivated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -191,18 +296,14 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
+        }
       }
     },
     "/async/{request_id}": {
       "get": {
-        "summary": "Get request results",
-        "description": "Retrieve the results for a specific request ID (works for both enrichment and lead finder requests)",
+        "summary": "Get enrichment results",
+        "operationId": "getEnrichment",
+        "description": "Retrieve the results of an enrichment request.\n\nAnswers `202` with no `data` while the request is still running, and `200` with `status: \"terminated\"` once it is done. Branch on `status`, never on the HTTP code alone. See [Request statuses](/api-reference/statuses).",
         "parameters": [
           {
             "name": "request_id",
@@ -213,9 +314,14 @@
             }
           }
         ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Request results retrieved successfully",
+            "description": "Request finished. `status` is `terminated` and `data` holds the enriched leads.",
             "content": {
               "application/json": {
                 "schema": {
@@ -224,8 +330,24 @@
               }
             }
           },
+          "202": {
+            "description": "Request accepted but not finished yet. `data` and `summary` are absent. Poll again later.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrichmentResult"
+                },
+                "example": {
+                  "id": "fefbc2203558eb3adcea",
+                  "status": "processing",
+                  "credits_left": 331,
+                  "message": "Enrichment is not terminated yet. Please try later"
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized. The API key is missing, invalid or deactivated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -235,7 +357,7 @@
             }
           },
           "406": {
-            "description": "Invalid request_id",
+            "description": "Unknown `request_id`, or the request does not belong to this account.",
             "content": {
               "application/json": {
                 "schema": {
@@ -249,19 +371,29 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Unexpected server error. Safe to retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "An error occured"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
+        }
       }
     },
     "/lead_finder/async/{request_id}": {
       "get": {
-        "summary": "Get Lead Finder request results",
-        "description": "Retrieve the results for a specific request ID",
+        "summary": "Get Lead Finder search results",
+        "operationId": "getLeadFinderSearch",
+        "description": "Retrieve the results of a Lead Finder search.\n\nAnswers `202` with no `leads` while the search is still running, and `200` with `status: \"terminated\"` once it is done. Branch on `status`, never on the HTTP code alone. See [Request statuses](/api-reference/statuses).",
         "parameters": [
           {
             "name": "request_id",
@@ -272,9 +404,14 @@
             }
           }
         ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Request results retrieved successfully",
+            "description": "Search finished. `status` is `terminated` (`leads` present, possibly empty) or `on_hold` (top up credits to resume).",
             "content": {
               "application/json": {
                 "schema": {
@@ -283,8 +420,24 @@
               }
             }
           },
+          "202": {
+            "description": "Request accepted but not finished yet. `leads` and `summary` are absent. Poll again later.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadFinderResult"
+                },
+                "example": {
+                  "id": "bc39ffbfc24cf043b748",
+                  "status": "processing",
+                  "credits_left": 331,
+                  "message": "Lead finder request is not terminated yet. Please try later"
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized. The API key is missing, invalid or deactivated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -293,28 +446,21 @@
               }
             }
           },
-          "406": {
-            "description": "Invalid request_id",
+          "404": {
+            "description": "Unknown `request_id`, or the request does not belong to this account.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string",
-                      "example": "Unvalid request_id."
-                    }
-                  }
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Lead finder request not found."
                 }
               }
             }
           }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
+        }
       }
     }
   },
@@ -329,36 +475,50 @@
     "schemas": {
       "NewLeadsEnrichment": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
-            "description": "Array of leads to enrich. Minimum: 1 lead. Maximum: 100 leads.",
             "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "Leads to enrich. Between 1 and 100 per call. Sending more than 100 is rejected with `400`.",
             "items": {
               "type": "object",
+              "required": [
+                "first_name",
+                "last_name"
+              ],
               "properties": {
                 "first_name": {
                   "type": "string",
-                  "description": "First name of the contact"
+                  "description": "First name of the contact.",
+                  "example": "Elon"
                 },
                 "last_name": {
                   "type": "string",
-                  "description": "Last name of the contact"
+                  "description": "Last name of the contact.",
+                  "example": "Musk"
                 },
                 "company": {
                   "type": "string",
-                  "description": "Company name of the contact (not required if company domain is provided)."
+                  "description": "Company name. Provide either `company` or `company_domain`. `company_domain` gives better results.",
+                  "example": "Tesla"
                 },
                 "company_domain": {
                   "type": "string",
-                  "description": "Company domain of the contact (required if company name not provided)."
+                  "description": "Company domain. Provide either `company` or `company_domain`.",
+                  "example": "tesla.com"
                 },
                 "linkedin_url": {
                   "type": "string",
-                  "description": "Linkedin profile url of the contact (public url is required - recommended if phone number enrichment is requested)."
+                  "description": "Public LinkedIn profile URL. Strongly recommended when `enrich_phone_number` is `true`, and required for `enrich_profile`.",
+                  "example": "https://www.linkedin.com/in/elonmusk"
                 },
                 "custom_fields": {
                   "type": "object",
-                  "description": "Can be any relevant data you want to be back in the response like CRM id or unique identifier. The following data (uuid, list_name) is just an example",
+                  "description": "Any data you want echoed back in the response, such as a CRM record id. Keys are free-form; `uuid` and `list_name` below are only an example.",
                   "properties": {
                     "uuid": {
                       "type": "string"
@@ -366,41 +526,68 @@
                     "list_name": {
                       "type": "string"
                     }
+                  },
+                  "example": {
+                    "uuid": "crm-8821",
+                    "list_name": "Q3 outbound"
                   }
                 }
-              },
-              "required": [
-                "first_name",
-                "last_name",
-                "company"
-              ]
+              }
             }
           },
           "enrich_email_address": {
-            "description": "If true, work email address of the contact will be enriched.",
-            "type": "boolean"
+            "type": "boolean",
+            "default": true,
+            "description": "Enrich the work email address. When `enrich_email_address`, `enrich_phone_number` and `enrich_profile` are all omitted or `false`, email enrichment is applied by default."
           },
           "enrich_phone_number": {
-            "description": "If true, direct phone number of the contact will be enriched.",
-            "type": "boolean"
+            "type": "boolean",
+            "default": false,
+            "description": "Enrich the mobile phone number. Requires the phone add-on on your plan, otherwise the call is rejected with `402`. Provide `linkedin_url` for best results."
+          },
+          "enrich_profile": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enrich the full LinkedIn profile of the contact (headline, seniority, location, current company). Requires `linkedin_url`."
+          },
+          "verify_catch_all": {
+            "type": "boolean",
+            "default": false,
+            "description": "Run the extra catch-all verification layer. When enabled, `contact_email_address_status` returns `catch_all_safe` / `catch_all_not_safe` instead of `catch_all`. Requires the catch-all add-on on your plan, otherwise the call is rejected with `402`."
           },
           "webhook": {
-            "description": "You can provide a webhook URL where results will be pushed once enrichment is done.",
-            "type": "string"
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/bettercontact/results",
+            "description": "URL that receives the full result payload as soon as the whole batch is done. Recommended over polling. See [Webhooks](/api-reference/webhooks)."
+          },
+          "push_contact_individually": {
+            "type": "boolean",
+            "default": false,
+            "description": "When `true`, each lead is pushed to `contact_webhook` as soon as it is enriched, instead of waiting for the whole batch. Useful for batches of 100."
+          },
+          "contact_webhook": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL that receives one payload per lead. Only used when `push_contact_individually` is `true`."
           },
           "process_flow": {
-            "description": "Add the process flow ID to use for your enrichment, if subscribed to the process flow add-on.",
-            "type": "string"
+            "type": "string",
+            "description": "Identifier of the process flow to use for this enrichment. Only for accounts subscribed to the process flow add-on."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 240,
+            "description": "Maximum time the waterfall is allowed to run before the request is terminated with whatever has been found. Defaults to the timeout configured on your account."
           }
-        },
-        "required": [
-          "data",
-          "enrich_email_address",
-          "enrich_phone_number"
-        ]
+        }
       },
       "LeadFinderRequest": {
         "type": "object",
+        "required": [
+          "filters"
+        ],
         "properties": {
           "filters": {
             "$ref": "#/components/schemas/LeadFinderFilters"
@@ -409,29 +596,52 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 200,
-            "description": "Maximum number of results to return per request. Accepted values between 1 and 200. By default, up to 100 leads are returned",
-            "example": 100
+            "example": 100,
+            "description": "Number of leads to return for this request, between 1 and 200. Use it together with `offset` to paginate. Mutually exclusive with `max_leads`: when `limit` is set, `max_leads` is ignored."
           },
           "offset": {
             "type": "integer",
-            "description": "Number of results to skip before returning matches. Use this to paginate through results when the total number of leads found (visible in the `leads_found` attribute of the response) exceeds the `limit` of the current request. For example, if `leads_found` is 350 and `limit` is 100, set `offset` to 101 to retrieve the next page of results.",
-            "example": 101
+            "minimum": 0,
+            "default": 0,
+            "example": 100,
+            "description": "Zero-based number of leads to skip before returning matches. Only taken into account when `limit` is set.\n\nTo walk through results, keep `limit` constant and increase `offset` by `limit` on each call: `0`, then `100`, then `200`, and so on. The total number of matching leads is returned as `summary.leads_found`."
+          },
+          "max_leads": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 100,
+            "example": 50,
+            "description": "Number of leads to return when you do not paginate. Between 1 and 200, defaults to 100. Ignored when `limit` is set."
           },
           "webhook": {
             "type": "string",
             "nullable": true,
-            "description": "Optional URL to receive results automatically"
+            "format": "uri",
+            "example": "https://example.com/bettercontact/leads",
+            "description": "URL that receives the results as soon as the search is done, removing the need to poll. See [Webhooks](/api-reference/webhooks)."
+          },
+          "enrich_email_address": {
+            "type": "boolean",
+            "default": false,
+            "description": "When `true`, every lead found is also run through the waterfall email enrichment before the results are returned. This consumes enrichment credits on top of the search, and the request stays in `processing` until enrichment is done."
+          },
+          "enrich_phone_number": {
+            "type": "boolean",
+            "default": false,
+            "description": "When `true`, every lead found is also run through the waterfall mobile phone enrichment before the results are returned. This consumes enrichment credits on top of the search. Requires the phone add-on on your plan."
           }
-        },
-        "required": [
-          "filters"
-        ]
+        }
       },
       "LeadFinderFilters": {
         "type": "object",
+        "description": "At least one filter value must be provided, otherwise the request is rejected with `400`.",
         "properties": {
           "company": {
             "$ref": "#/components/schemas/CompanyDomainFilter"
+          },
+          "company_linkedin_url": {
+            "$ref": "#/components/schemas/CompanyLinkedinUrlFilter"
           },
           "company_industry": {
             "$ref": "#/components/schemas/CompanyIndustryFilter"
@@ -442,23 +652,132 @@
           "company_technologies": {
             "$ref": "#/components/schemas/CompanyTechnologiesFilter"
           },
+          "company_keywords": {
+            "$ref": "#/components/schemas/CompanyKeywordsFilter"
+          },
+          "company_description": {
+            "$ref": "#/components/schemas/CompanyDescriptionFilter"
+          },
           "company_headcount_min": {
             "type": "integer",
-            "minimum": 1,
-            "maximum": 10000000,
-            "description": "Minimum employee count"
+            "example": 51,
+            "description": "Minimum employee count. Converted server-side into the overlapping company size ranges listed in [Taxonomies - Company size ranges](/api-reference/taxonomies#company-size-ranges)."
           },
           "company_headcount_max": {
             "type": "integer",
+            "example": 1000,
+            "description": "Maximum employee count. Converted server-side into the overlapping company size ranges listed in [Taxonomies - Company size ranges](/api-reference/taxonomies#company-size-ranges)."
+          },
+          "revenue_ranges": {
+            "$ref": "#/components/schemas/RevenueRangesFilter"
+          },
+          "last_funding_round_names": {
+            "$ref": "#/components/schemas/FundingRoundNamesFilter"
+          },
+          "last_funding_date_range": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RangeFilter"
+              }
+            ],
+            "description": "Date of the last funding round, as `YYYY-MM-DD` strings.",
+            "example": {
+              "gte": "2024-01-01",
+              "lte": "2025-12-31"
+            }
+          },
+          "last_amount_raised_usd": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RangeFilter"
+              }
+            ],
+            "description": "Amount raised in the last round, in USD.",
+            "example": {
+              "gte": 1000000
+            }
+          },
+          "total_amount_raised_usd": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RangeFilter"
+              }
+            ],
+            "description": "Total amount raised to date, in USD.",
+            "example": {
+              "gte": 5000000,
+              "lte": 100000000
+            }
+          },
+          "is_b2b": {
+            "type": "boolean",
+            "description": "Restrict to companies selling to businesses. `false` is a meaningful value and is sent as-is."
+          },
+          "is_b2c": {
+            "type": "boolean",
+            "description": "Restrict to companies selling to consumers. `false` is a meaningful value and is sent as-is."
+          },
+          "is_public": {
+            "type": "boolean",
+            "description": "Restrict to publicly traded companies."
+          },
+          "job_post_titles": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobPostingFilter"
+              }
+            ],
+            "description": "Job titles the company is currently hiring for.",
+            "example": {
+              "include": [
+                "Account Executive"
+              ]
+            }
+          },
+          "job_posting_countries": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobPostingFilter"
+              }
+            ],
+            "description": "Countries the company is currently hiring in.",
+            "example": {
+              "include": [
+                "United States"
+              ]
+            }
+          },
+          "job_posting_locations": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobPostingFilter"
+              }
+            ],
+            "description": "Cities or regions the company is currently hiring in.",
+            "example": {
+              "include": [
+                "Berlin"
+              ]
+            }
+          },
+          "limit_per_company": {
+            "type": "integer",
             "minimum": 1,
-            "maximum": 10000000,
-            "description": "Maximum employee count"
+            "maximum": 100,
+            "example": 3,
+            "description": "Caps how many leads are returned per company. Useful to spread results across accounts instead of returning a whole org chart. Maximum 100."
           },
           "lead_fullname": {
             "$ref": "#/components/schemas/FilterObject"
           },
           "lead_linkedin_url": {
             "$ref": "#/components/schemas/FilterObject"
+          },
+          "lead_job_title": {
+            "$ref": "#/components/schemas/JobTitleFilter"
+          },
+          "lead_seniority": {
+            "$ref": "#/components/schemas/SeniorityFilter"
           },
           "lead_department": {
             "$ref": "#/components/schemas/LeadDepartmentFilter"
@@ -469,14 +788,8 @@
           "lead_skills": {
             "$ref": "#/components/schemas/FilterObject"
           },
-          "lead_job_title": {
-            "$ref": "#/components/schemas/JobTitleFilter"
-          },
           "lead_location": {
             "$ref": "#/components/schemas/FilterObject"
-          },
-          "lead_seniority": {
-            "$ref": "#/components/schemas/SeniorityFilter"
           }
         }
       },
@@ -488,18 +801,17 @@
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "Values that must match"
+            "description": "Values that must match."
           },
           "exclude": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "Values that must NOT match"
+            "description": "Values that must NOT match."
           }
-        }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       },
       "JobTitleFilter": {
         "allOf": [
@@ -511,11 +823,13 @@
             "properties": {
               "exact_match": {
                 "type": "boolean",
-                "description": "When enabled, only exact job title matches are returned"
+                "default": false,
+                "description": "When `true`, only job titles strictly equal to an `include` value are returned. When `false` (default), titles containing the value also match."
               }
             }
           }
-        ]
+        ],
+        "description": "Job title filter. This is the only filter whose `exclude` is applied natively by the provider."
       },
       "SeniorityFilter": {
         "type": "object",
@@ -523,48 +837,23 @@
           "include": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "senior",
-                "entry",
-                "manager",
-                "mid-level",
-                "director",
-                "c_suite",
-                "owner",
-                "intern",
-                "founder",
-                "head",
-                "vp",
-                "partner"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Seniority levels that must match. Possible values: senior, entry, manager, mid-level, director, c_suite, owner, intern, founder, head, vp, partner"
+            "description": "Seniority levels that must match. Must be exact values from the predefined list, see [Taxonomies - Seniority levels](/api-reference/taxonomies#seniority-levels).",
+            "example": [
+              "cxo",
+              "vp"
+            ]
           },
           "exclude": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "senior",
-                "entry",
-                "manager",
-                "mid-level",
-                "director",
-                "c_suite",
-                "owner",
-                "intern",
-                "founder",
-                "head",
-                "vp",
-                "partner"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Seniority levels that must NOT match. Possible values: senior, entry, manager, mid-level, director, c_suite, owner, intern, founder, head, vp, partner"
+            "description": "Seniority levels that must NOT match."
           }
-        }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       },
       "CompanyDomainFilter": {
         "type": "object",
@@ -574,18 +863,21 @@
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "Company domains that must match (e.g. 'google.com', 'microsoft.com')"
+            "description": "Company domains that must match.",
+            "example": [
+              "google.com",
+              "microsoft.com"
+            ]
           },
           "exclude": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "Company domains that must NOT match (e.g. 'google.com', 'microsoft.com')"
+            "description": "Company domains that must NOT match."
           }
-        }
+        },
+        "description": "Filter on the contact's current company domain. `exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       },
       "CompanyIndustryFilter": {
         "type": "object",
@@ -593,264 +885,22 @@
           "include": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "Accounting",
-                "Airlines/Aviation",
-                "Alternative Medicine",
-                "Animation",
-                "Apparel & Fashion",
-                "Architecture & Planning",
-                "Automotive",
-                "Aviation & Aerospace",
-                "Banking",
-                "Biotechnology",
-                "Broadcast Media",
-                "Building Materials",
-                "Business Supplies & Equipment",
-                "Capital Markets",
-                "Chemicals",
-                "Civic & Social Organization",
-                "Civil Engineering",
-                "Commercial Real Estate",
-                "Computer & Network Security",
-                "Computer Games",
-                "Computer Hardware",
-                "Computer Networking",
-                "Computer Software",
-                "Construction",
-                "Consumer Electronics",
-                "Consumer Goods",
-                "Consumer Services",
-                "Cosmetics",
-                "Defense & Space",
-                "Design",
-                "E-Learning",
-                "Education Management",
-                "Electrical & Electronic Manufacturing",
-                "Entertainment",
-                "Environmental Services",
-                "Events Services",
-                "Executive Office",
-                "Facilities Services",
-                "Financial Services",
-                "Fine Art",
-                "Food & Beverages",
-                "Food Production",
-                "Gambling & Casinos",
-                "Government Administration",
-                "Government Relations",
-                "Graphic Design",
-                "Health, Wellness & Fitness",
-                "Higher Education",
-                "Hospital & Health Care",
-                "Hospitality",
-                "Human Resources",
-                "Individual & Family Services",
-                "Industrial Automation",
-                "Information Services",
-                "Information Technology & Services",
-                "Insurance",
-                "International Affairs",
-                "International Trade & Development",
-                "Internet",
-                "Investment Banking",
-                "Investment Management",
-                "Law Enforcement",
-                "Law Practice",
-                "Legal Services",
-                "Leisure, Travel & Tourism",
-                "Logistics & Supply Chain",
-                "Luxury Goods & Jewelry",
-                "Management Consulting",
-                "Maritime",
-                "Market Research",
-                "Marketing & Advertising",
-                "Mechanical or Industrial Engineering",
-                "Media Production",
-                "Medical Device",
-                "Medical Practice",
-                "Mental Health Care",
-                "Military",
-                "Mining & Metals",
-                "Motion Pictures & Film",
-                "Music",
-                "Nanotechnology",
-                "Non-profit Organization Management",
-                "Oil & Energy",
-                "Online Media",
-                "Outsourcing/Offshoring",
-                "Package/Freight Delivery",
-                "Performing Arts",
-                "Pharmaceuticals",
-                "Philanthropy",
-                "Photography",
-                "Political Organization",
-                "Primary/Secondary Education",
-                "Professional Training & Coaching",
-                "Program Development",
-                "Public Policy",
-                "Public Relations & Communications",
-                "Publishing",
-                "Real Estate",
-                "Religious Institutions",
-                "Renewables & Environment",
-                "Research",
-                "Restaurants",
-                "Retail",
-                "Security & Investigations",
-                "Semiconductors",
-                "Shipbuilding",
-                "Software Development",
-                "Sports",
-                "Staffing & Recruiting",
-                "Telecommunications",
-                "Think Tanks",
-                "Translation & Localization",
-                "Transportation/Trucking/Railroad",
-                "Utilities",
-                "Venture Capital & Private Equity",
-                "Veterinary",
-                "Wholesale",
-                "Wine & Spirits",
-                "Wireless",
-                "Writing & Editing"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Company industries that must match. Must be exact values from the predefined list. See [Taxonomies — Industries](/api-reference/taxonomies#industries) for the full reference."
+            "description": "Company industries that must match. Must be exact values from the predefined list, see [Taxonomies - Industries](/api-reference/taxonomies#industries).",
+            "example": [
+              "Computer Software"
+            ]
           },
           "exclude": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "Accounting",
-                "Airlines/Aviation",
-                "Alternative Medicine",
-                "Animation",
-                "Apparel & Fashion",
-                "Architecture & Planning",
-                "Automotive",
-                "Aviation & Aerospace",
-                "Banking",
-                "Biotechnology",
-                "Broadcast Media",
-                "Building Materials",
-                "Business Supplies & Equipment",
-                "Capital Markets",
-                "Chemicals",
-                "Civic & Social Organization",
-                "Civil Engineering",
-                "Commercial Real Estate",
-                "Computer & Network Security",
-                "Computer Games",
-                "Computer Hardware",
-                "Computer Networking",
-                "Computer Software",
-                "Construction",
-                "Consumer Electronics",
-                "Consumer Goods",
-                "Consumer Services",
-                "Cosmetics",
-                "Defense & Space",
-                "Design",
-                "E-Learning",
-                "Education Management",
-                "Electrical & Electronic Manufacturing",
-                "Entertainment",
-                "Environmental Services",
-                "Events Services",
-                "Executive Office",
-                "Facilities Services",
-                "Financial Services",
-                "Fine Art",
-                "Food & Beverages",
-                "Food Production",
-                "Gambling & Casinos",
-                "Government Administration",
-                "Government Relations",
-                "Graphic Design",
-                "Health, Wellness & Fitness",
-                "Higher Education",
-                "Hospital & Health Care",
-                "Hospitality",
-                "Human Resources",
-                "Individual & Family Services",
-                "Industrial Automation",
-                "Information Services",
-                "Information Technology & Services",
-                "Insurance",
-                "International Affairs",
-                "International Trade & Development",
-                "Internet",
-                "Investment Banking",
-                "Investment Management",
-                "Law Enforcement",
-                "Law Practice",
-                "Legal Services",
-                "Leisure, Travel & Tourism",
-                "Logistics & Supply Chain",
-                "Luxury Goods & Jewelry",
-                "Management Consulting",
-                "Maritime",
-                "Market Research",
-                "Marketing & Advertising",
-                "Mechanical or Industrial Engineering",
-                "Media Production",
-                "Medical Device",
-                "Medical Practice",
-                "Mental Health Care",
-                "Military",
-                "Mining & Metals",
-                "Motion Pictures & Film",
-                "Music",
-                "Nanotechnology",
-                "Non-profit Organization Management",
-                "Oil & Energy",
-                "Online Media",
-                "Outsourcing/Offshoring",
-                "Package/Freight Delivery",
-                "Performing Arts",
-                "Pharmaceuticals",
-                "Philanthropy",
-                "Photography",
-                "Political Organization",
-                "Primary/Secondary Education",
-                "Professional Training & Coaching",
-                "Program Development",
-                "Public Policy",
-                "Public Relations & Communications",
-                "Publishing",
-                "Real Estate",
-                "Religious Institutions",
-                "Renewables & Environment",
-                "Research",
-                "Restaurants",
-                "Retail",
-                "Security & Investigations",
-                "Semiconductors",
-                "Shipbuilding",
-                "Software Development",
-                "Sports",
-                "Staffing & Recruiting",
-                "Telecommunications",
-                "Think Tanks",
-                "Translation & Localization",
-                "Transportation/Trucking/Railroad",
-                "Utilities",
-                "Venture Capital & Private Equity",
-                "Veterinary",
-                "Wholesale",
-                "Wine & Spirits",
-                "Wireless",
-                "Writing & Editing"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Company industries that must NOT match. Must be exact values from the predefined list. See [Taxonomies — Industries](/api-reference/taxonomies#industries) for the full reference."
+            "description": "Company industries that must NOT match. Same accepted values as `include`."
           }
-        }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       },
       "LeadDepartmentFilter": {
         "type": "object",
@@ -858,78 +908,22 @@
           "include": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "Engineering",
-                "Software Development",
-                "Sales",
-                "Marketing",
-                "Finance",
-                "Operations",
-                "Human Resources",
-                "Product Management",
-                "Design",
-                "Customer Success",
-                "Legal",
-                "Information Technology",
-                "Research & Development",
-                "Business Development",
-                "Communications",
-                "Data & Analytics",
-                "Consulting",
-                "Healthcare",
-                "Education",
-                "Administrative",
-                "Accounting",
-                "Strategy",
-                "Procurement",
-                "Quality Assurance",
-                "Recruiting",
-                "Public Relations",
-                "Media & Content"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Lead departments that must match. Must be exact values from the predefined list. See [Taxonomies — Departments](/api-reference/taxonomies#departments) for the full reference."
+            "description": "Lead departments that must match. Must be exact values from the predefined list, see [Taxonomies - Departments](/api-reference/taxonomies#departments).",
+            "example": [
+              "Sales"
+            ]
           },
           "exclude": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "Engineering",
-                "Software Development",
-                "Sales",
-                "Marketing",
-                "Finance",
-                "Operations",
-                "Human Resources",
-                "Product Management",
-                "Design",
-                "Customer Success",
-                "Legal",
-                "Information Technology",
-                "Research & Development",
-                "Business Development",
-                "Communications",
-                "Data & Analytics",
-                "Consulting",
-                "Healthcare",
-                "Education",
-                "Administrative",
-                "Accounting",
-                "Strategy",
-                "Procurement",
-                "Quality Assurance",
-                "Recruiting",
-                "Public Relations",
-                "Media & Content"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Lead departments that must NOT match. Must be exact values from the predefined list. See [Taxonomies — Departments](/api-reference/taxonomies#departments) for the full reference."
+            "description": "Lead departments that must NOT match."
           }
-        }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       },
       "LeadFunctionFilter": {
         "type": "object",
@@ -937,170 +931,150 @@
           "include": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "Engineering",
-                "Software Development",
-                "Sales",
-                "Marketing",
-                "Finance",
-                "Operations",
-                "Human Resources",
-                "Product Management",
-                "Design",
-                "Customer Success",
-                "Legal",
-                "Information Technology",
-                "Research & Development",
-                "Business Development",
-                "Communications",
-                "Data & Analytics",
-                "Consulting",
-                "Healthcare",
-                "Education",
-                "Administrative",
-                "Accounting",
-                "Strategy",
-                "Procurement",
-                "Quality Assurance",
-                "Recruiting",
-                "Public Relations",
-                "Media & Content"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Lead functions that must match. Uses the same accepted values as lead_department (both filter on Landbase member_departments). See [Taxonomies — Departments](/api-reference/taxonomies#departments) for the full reference."
+            "description": "Lead functions that must match. Uses the same accepted values and the same underlying field as `lead_department`, see [Taxonomies - Functions](/api-reference/taxonomies#functions).",
+            "example": [
+              "Marketing"
+            ]
           },
           "exclude": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "Engineering",
-                "Software Development",
-                "Sales",
-                "Marketing",
-                "Finance",
-                "Operations",
-                "Human Resources",
-                "Product Management",
-                "Design",
-                "Customer Success",
-                "Legal",
-                "Information Technology",
-                "Research & Development",
-                "Business Development",
-                "Communications",
-                "Data & Analytics",
-                "Consulting",
-                "Healthcare",
-                "Education",
-                "Administrative",
-                "Accounting",
-                "Strategy",
-                "Procurement",
-                "Quality Assurance",
-                "Recruiting",
-                "Public Relations",
-                "Media & Content"
-              ]
+              "type": "string"
             },
-            "nullable": true,
-            "description": "Lead functions that must NOT match. Uses the same accepted values as lead_department. See [Taxonomies — Departments](/api-reference/taxonomies#departments) for the full reference."
+            "description": "Lead functions that must NOT match."
           }
-        }
+        },
+        "description": "`lead_function` and `lead_department` resolve to the same provider field. Setting both widens the match rather than narrowing it. `exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       },
       "EnrichmentResult": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
+            "description": "The `request_id` of this enrichment.",
             "example": "fefbc2203558eb3adcea"
           },
           "status": {
             "type": "string",
-            "example": "terminated"
+            "example": "terminated",
+            "enum": [
+              "processing",
+              "on_hold",
+              "terminated"
+            ],
+            "description": "See [Request statuses](/api-reference/statuses). Only `terminated` guarantees `data` and `summary` are present."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human readable hint. Only present while the request is not terminated.",
+            "example": "Enrichment is not terminated yet. Please try later"
           },
           "credits_consumed": {
             "type": "integer",
+            "description": "Credits spent by this request so far.",
             "example": 1
           },
           "credits_left": {
             "type": "integer",
+            "description": "Credits remaining on the account.",
             "example": 331
           },
           "summary": {
             "type": "object",
+            "description": "Only present once `status` is `terminated`.",
             "properties": {
               "total": {
                 "type": "integer",
-                "example": 1
+                "description": "Number of leads in the request.",
+                "example": 10
               },
               "valid": {
                 "type": "integer",
-                "example": 1
+                "description": "Emails verified as `deliverable`.",
+                "example": 6
               },
               "catch_all": {
                 "type": "integer",
-                "example": 0
-              },
-              "catch_all_safe": {
-                "type": "integer",
-                "example": 0
+                "description": "Emails on a catch-all domain. Reported as `catch_all_safe` instead when catch-all verification is enabled.",
+                "example": 2
               },
               "catch_all_not_safe": {
                 "type": "integer",
-                "example": 0
+                "description": "Catch-all emails judged unsafe to send to. Only when catch-all verification is enabled.",
+                "example": 1
               },
               "undeliverable": {
                 "type": "integer",
+                "description": "Emails verified as undeliverable.",
                 "example": 0
               },
               "not_found": {
                 "type": "integer",
-                "example": 0
+                "description": "Leads for which no email was found.",
+                "example": 1
+              },
+              "found": {
+                "type": "integer",
+                "description": "Phone numbers found. Only present when `enrich_phone_number` was requested.",
+                "example": 4
+              },
+              "email_enrichment": {
+                "type": "object",
+                "description": "Only present when `enrich_email_address` was requested.",
+                "properties": {
+                  "enriched": {
+                    "type": "integer",
+                    "description": "",
+                    "example": 6
+                  },
+                  "not_enriched": {
+                    "type": "integer",
+                    "description": "",
+                    "example": 4
+                  }
+                }
+              },
+              "phone_enrichment": {
+                "type": "object",
+                "description": "Only present when `enrich_phone_number` was requested.",
+                "properties": {
+                  "enriched": {
+                    "type": "integer",
+                    "description": "",
+                    "example": 4
+                  },
+                  "not_enriched": {
+                    "type": "integer",
+                    "description": "",
+                    "example": 6
+                  }
+                }
+              },
+              "profile_enrichment": {
+                "type": "object",
+                "description": "Only present when `enrich_profile` was requested.",
+                "properties": {
+                  "enriched": {
+                    "type": "integer",
+                    "description": "",
+                    "example": 9
+                  },
+                  "not_enriched": {
+                    "type": "integer",
+                    "description": "",
+                    "example": 1
+                  }
+                }
               }
             }
           },
           "data": {
             "type": "array",
+            "description": "Only present once `status` is `terminated`.",
             "items": {
-              "type": "object",
-              "properties": {
-                "enriched": {
-                  "type": "boolean",
-                  "example": true
-                },
-                "email_provider": {
-                  "type": "string",
-                  "example": "XXX"
-                },
-                "contact_first_name": {
-                  "type": "string",
-                  "example": "Elon"
-                },
-                "contact_last_name": {
-                  "type": "string",
-                  "example": "Musk"
-                },
-                "contact_email_address": {
-                  "type": "string",
-                  "example": "elon@tesla.com"
-                },
-                "contact_email_address_status": {
-                  "type": "string",
-                  "example": "deliverable",
-                  "description": "Available statuses: deliverable, catch_all_safe, catch_all_not_safe, undeliverable"
-                },
-                "contact_gender": {
-                  "type": "string",
-                  "example": "male"
-                },
-                "contact_job_title": {
-                  "type": "string",
-                  "example": "CEO of Tesla"
-                }
-              }
+              "$ref": "#/components/schemas/EnrichedContact"
             }
           }
         }
@@ -1110,31 +1084,94 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "f4eaa33f3d6fd1d8e1a7"
-          },
-          "credits_left": {
-            "type": "string",
-            "example": "993.3"
-          },
-          "credits_consumed": {
-            "type": "string",
-            "example": "5.5"
+            "description": "The `request_id` of this search.",
+            "example": "bc39ffbfc24cf043b748"
           },
           "status": {
             "type": "string",
-            "example": "terminated"
+            "example": "terminated",
+            "enum": [
+              "not_started",
+              "processing",
+              "on_hold",
+              "terminated"
+            ],
+            "description": "See [Request statuses](/api-reference/statuses). A search that matched nothing is reported as `terminated` with an empty `leads` array."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human readable hint. Only present while the search is not terminated.",
+            "example": "Lead finder request is not terminated yet. Please try later"
+          },
+          "credits_consumed": {
+            "type": "integer",
+            "description": "Credits spent by this search. Zero unless `enrich_email_address` or `enrich_phone_number` was requested.",
+            "example": 0
+          },
+          "credits_left": {
+            "type": "integer",
+            "description": "Credits remaining on the account.",
+            "example": 331
           },
           "summary": {
             "type": "object",
+            "description": "Only present once `status` is `terminated`.",
             "properties": {
               "leads_found": {
                 "type": "integer",
-                "example": 55
+                "description": "Total number of leads matching the filters, regardless of `limit`. Use it to size your pagination. Absent when enrichment was requested.",
+                "example": 350
+              },
+              "limit": {
+                "type": "integer",
+                "description": "The `limit` used for this page. Only present when paginating.",
+                "example": 100
+              },
+              "offset": {
+                "type": "integer",
+                "description": "The `offset` used for this page. Only present when paginating.",
+                "example": 100
+              },
+              "total": {
+                "type": "integer",
+                "description": "Number of leads enriched. Only present when enrichment was requested.",
+                "example": 100
+              },
+              "valid": {
+                "type": "integer",
+                "description": "Emails verified as `deliverable`. Only present when `enrich_email_address` was requested.",
+                "example": 62
+              },
+              "catch_all": {
+                "type": "integer",
+                "description": "Emails on a catch-all domain. Only present when `enrich_email_address` was requested.",
+                "example": 18
+              },
+              "catch_all_not_safe": {
+                "type": "integer",
+                "description": "Catch-all emails judged unsafe to send to.",
+                "example": 5
+              },
+              "undeliverable": {
+                "type": "integer",
+                "description": "Emails verified as undeliverable.",
+                "example": 3
+              },
+              "not_found": {
+                "type": "integer",
+                "description": "Leads for which no email was found.",
+                "example": 17
+              },
+              "found": {
+                "type": "integer",
+                "description": "Phone numbers found. Only present when `enrich_phone_number` was requested.",
+                "example": 41
               }
             }
           },
           "leads": {
             "type": "array",
+            "description": "Only present once `status` is `terminated`. Empty array when nothing matched.",
             "items": {
               "$ref": "#/components/schemas/LeadObject"
             }
@@ -1143,340 +1180,182 @@
       },
       "LeadObject": {
         "type": "object",
+        "description": "One lead returned by the search. Every key below is always present, with `null` when the value is unknown.\n\nFor backward compatibility the response also carries a set of legacy keys that are always `null` (`company_logo`, `company_size`, `contact_avatar`, `company_website`, `company_address_*`, `contact_experience`, `contact_connections`, and others). Ignore them.",
         "properties": {
           "contact_id": {
             "type": "integer",
-            "example": 32680300
-          },
-          "contact_full_name": {
-            "type": "string",
-            "example": "Frédéric Bonnand"
+            "description": "BetterContact internal identifier for this contact.",
+            "example": 128374651
           },
           "contact_first_name": {
             "type": "string",
-            "example": "Frédéric"
+            "description": "First name.",
+            "example": "Elon"
           },
           "contact_last_name": {
             "type": "string",
-            "example": "Bonnand"
+            "description": "Last name.",
+            "example": "Musk"
+          },
+          "contact_full_name": {
+            "type": "string",
+            "description": "First and last name concatenated.",
+            "example": "Elon Musk"
           },
           "contact_job_title": {
             "type": "string",
-            "example": "Founder @bettercontact"
+            "description": "Current job title.",
+            "example": "Ceo"
           },
           "contact_seniority": {
             "type": "string",
-            "example": "Founder"
+            "description": "Seniority level.",
+            "example": "Cxo"
           },
           "contact_headline": {
             "type": "string",
-            "example": "Find emails and phones with bettercontact waterfall enrichment"
+            "description": "LinkedIn headline. Named `contact_linkedin_headline` in the enrichment response."
           },
           "contact_industry": {
             "type": "string",
-            "example": "Information technology & services"
-          },
-          "contact_linkedin_profile_url": {
-            "type": "string",
-            "example": "https://www.linkedin.com/in/fbonnand"
-          },
-          "contact_linkedin_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_location_continent": {
-            "type": "string",
-            "example": "Europe"
-          },
-          "contact_location_country": {
-            "type": "string",
-            "example": "France"
-          },
-          "contact_location_state": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_location_city": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_city": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_location": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_country_code": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_email_address": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_email_address_status": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_email_address_provider": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_phone_number": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_phone_number_cc": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_additional_phone_number": {
-            "type": "string",
-            "nullable": true
-          },
-          "contact_avatar": {
-            "type": "string",
-            "nullable": true
+            "description": "Industry of the contact.",
+            "example": "Automotive"
           },
           "contact_gender": {
             "type": "string",
-            "nullable": true
+            "description": "Inferred gender.",
+            "example": "male"
           },
-          "contact_activity": {
+          "contact_linkedin_profile_url": {
             "type": "string",
-            "nullable": true
+            "description": "Public LinkedIn profile URL.",
+            "example": "https://www.linkedin.com/in/elonmusk"
           },
-          "contact_followers": {
+          "contact_location_continent": {
             "type": "string",
-            "nullable": true
+            "description": "Continent.",
+            "example": "North america"
           },
-          "contact_connections": {
+          "contact_location_country": {
             "type": "string",
-            "nullable": true
+            "description": "Country.",
+            "example": "United states"
           },
-          "contact_experience": {
+          "contact_location_state": {
             "type": "string",
-            "nullable": true
+            "description": "State or region.",
+            "example": "Texas"
           },
-          "contact_current_company": {
+          "contact_location_city": {
             "type": "string",
-            "nullable": true
+            "description": "City.",
+            "example": "Austin"
           },
-          "contact_people_also_viewed": {
+          "contact_email_address": {
             "type": "string",
-            "nullable": true
+            "description": "Work email address. Only filled when `enrich_email_address` was requested.",
+            "example": "elon@tesla.com"
           },
-          "contact_posts": {
+          "contact_email_address_status": {
             "type": "string",
-            "nullable": true
+            "example": "deliverable",
+            "enum": [
+              "deliverable",
+              "catch_all",
+              "catch_all_safe",
+              "catch_all_not_safe",
+              "undeliverable",
+              "not_found"
+            ],
+            "description": "Verification verdict. Only filled when `enrich_email_address` was requested."
           },
-          "company_id": {
+          "contact_email_address_provider": {
             "type": "string",
-            "nullable": true
+            "description": "Waterfall vendor that found the email. Vendors under NDA are reported as `Secret Provider`.",
+            "example": "Secret Provider"
+          },
+          "contact_phone_number": {
+            "type": "string",
+            "description": "Mobile phone number in E.164 format. Only filled when `enrich_phone_number` was requested.",
+            "example": "+14155550101"
           },
           "company_name": {
             "type": "string",
-            "example": "Bettercontact"
+            "description": "Company name.",
+            "example": "Tesla"
           },
           "company_domain": {
             "type": "string",
-            "example": "bettercontact.rocks"
+            "description": "Company domain.",
+            "example": "tesla.com"
           },
           "company_description": {
             "type": "string",
-            "example": "Bettercontact aggregates 20+ premium contact data providers such as people data labs, rocketreach, and datagma into one subscription."
-          },
-          "company_about": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_logo": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_image": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_size": {
-            "type": "string",
-            "nullable": true
+            "description": "Short company description."
           },
           "company_linkedin_url": {
             "type": "string",
-            "example": "https://www.linkedin.com/company/bettercontact"
-          },
-          "company_linkedin_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_website": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_crunchbase_url": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_directions_url": {
-            "type": "string",
-            "nullable": true
+            "description": "Company LinkedIn page URL. Not provided by the current data source, so it is `null` on most leads."
           },
           "company_industry": {
             "type": "string",
-            "example": "Software development"
-          },
-          "company_industries": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_industry_code": {
-            "type": "string",
-            "nullable": true
+            "description": "Company industry.",
+            "example": "Automotive"
           },
           "company_type": {
             "type": "string",
-            "example": "privately_held"
+            "description": "Company type.",
+            "example": "Public Company"
           },
-          "company_organization_type": {
+          "company_keywords": {
             "type": "string",
-            "nullable": true
-          },
-          "company_founded": {
-            "type": "string",
-            "nullable": true
+            "description": "Keywords associated with the company."
           },
           "company_founded_year": {
             "type": "integer",
-            "example": 2022
-          },
-          "company_funding": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_investors": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_stock_info": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_similar": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_specialities": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_employees": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_employees_number": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_employees_in_linkedin": {
-            "type": "string",
-            "nullable": true
+            "description": "Year the company was founded.",
+            "example": 2003
           },
           "company_employees_range_start": {
             "type": "integer",
-            "example": 11
+            "description": "Lower bound of the headcount range.",
+            "example": 10001
           },
           "company_employees_range_end": {
             "type": "integer",
-            "example": 50
-          },
-          "company_followers": {
-            "type": "string",
-            "nullable": true
+            "description": "Upper bound of the headcount range.",
+            "example": 50000
           },
           "company_head_quarters_city": {
             "type": "string",
-            "example": "Lyon"
+            "description": "Headquarters city. Note the spelling: the enrichment response uses `company_headquarters_city`.",
+            "example": "Austin"
           },
           "company_head_quarters_country": {
             "type": "string",
-            "example": "France"
-          },
-          "company_headquarters": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_address_street": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_address_city": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_address_state": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_address_country": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_address_zipcode": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_formatted_locations": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_country_code": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_phone_number": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_legal_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "company_legal_name": {
-            "type": "string",
-            "nullable": true
+            "description": "Headquarters country. Note the spelling: the enrichment response uses `company_headquarters_country`.",
+            "example": "United states"
           },
           "custom_fields": {
             "type": "array",
-            "items": {},
-            "example": []
+            "items": {
+              "type": "object"
+            },
+            "description": "Empty for Lead Finder results. Only enrichment requests echo custom fields back."
           }
         }
       },
       "UnauthorizedError": {
         "type": "object",
         "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false,
+            "description": "Not returned by the enrichment endpoints."
+          },
           "error": {
             "type": "string",
-            "example": "Unauthorized"
-          }
-        }
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
+            "example": "Your are not authorized. Please check your api_key."
           }
         }
       },
@@ -1488,18 +1367,21 @@
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "HQ locations that must match. Accepts country names (e.g. \"United States\") or full addresses (e.g. \"San Francisco, CA, United States\"). See [Taxonomies — Countries](/api-reference/taxonomies#countries) for the country list."
+            "description": "HQ locations that must match. Accepts country names (e.g. \"United States\"), and also states or cities.",
+            "example": [
+              "United States",
+              "Germany"
+            ]
           },
           "exclude": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "HQ locations that must NOT match. Same format as include."
+            "description": "HQ locations that must NOT match. Same format as `include`."
           }
-        }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       },
       "CompanyTechnologiesFilter": {
         "type": "object",
@@ -1509,18 +1391,376 @@
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "Technologies that must match. The list of accepted values is too large to inline here — see [Taxonomies — Technologies](/api-reference/taxonomies#technologies) for the full reference."
+            "description": "Technologies that must match. Must be exact values from the predefined list, see [Taxonomies - Technologies](/api-reference/taxonomies#technologies).",
+            "example": [
+              "salesforce",
+              "hubspot"
+            ]
           },
           "exclude": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "nullable": true,
-            "description": "Technologies that must NOT match. See [Taxonomies — Technologies](/api-reference/taxonomies#technologies) for the full reference."
+            "description": "Technologies that must NOT match. Same accepted values as `include`."
+          }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
+      },
+      "ApiError": {
+        "type": "object",
+        "description": "Generic error envelope. Depending on the endpoint the human readable text is carried by `error` or by `message`, so always read both.",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Human readable error message."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human readable error message."
           }
         }
+      },
+      "EnrichedContact": {
+        "type": "object",
+        "description": "One enriched lead. Every key below is always present, with `null` when the value could not be found.\n\nFor backward compatibility the response also carries a set of legacy keys that are always `null` (`company_logo`, `company_size`, `contact_avatar`, `company_website`, `contact_experience`, `company_address_*`, `contact_additional_phone_number`, and others). Ignore them.",
+        "properties": {
+          "enriched": {
+            "type": "boolean",
+            "example": true,
+            "description": "`true` when the lead was successfully enriched and is not on an opt-out list. Check this before using the row."
+          },
+          "contact_id": {
+            "type": "integer",
+            "description": "BetterContact internal identifier for this contact.",
+            "example": 128374651
+          },
+          "custom_fields": {
+            "type": "array",
+            "description": "Echoed back exactly as submitted in the request. Use it to reconcile results with your own records.",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "name": "uuid",
+                "value": "crm-8821"
+              },
+              {
+                "name": "list_name",
+                "value": "Q3 outbound"
+              }
+            ]
+          },
+          "contact_first_name": {
+            "type": "string",
+            "description": "First name of the contact.",
+            "example": "Elon"
+          },
+          "contact_last_name": {
+            "type": "string",
+            "description": "Last name of the contact.",
+            "example": "Musk"
+          },
+          "contact_full_name": {
+            "type": "string",
+            "description": "First and last name concatenated.",
+            "example": "Elon Musk"
+          },
+          "contact_job_title": {
+            "type": "string",
+            "description": "Current job title.",
+            "example": "Ceo of tesla"
+          },
+          "contact_seniority": {
+            "type": "string",
+            "description": "Seniority level of the contact.",
+            "example": "Cxo"
+          },
+          "contact_industry": {
+            "type": "string",
+            "description": "Industry of the contact.",
+            "example": "Automotive"
+          },
+          "contact_linkedin_headline": {
+            "type": "string",
+            "description": "LinkedIn headline of the contact."
+          },
+          "contact_linkedin_profile_url": {
+            "type": "string",
+            "description": "Public LinkedIn profile URL.",
+            "example": "https://www.linkedin.com/in/elonmusk"
+          },
+          "contact_location_continent": {
+            "type": "string",
+            "description": "Continent of the contact.",
+            "example": "North america"
+          },
+          "contact_location_country": {
+            "type": "string",
+            "description": "Country of the contact.",
+            "example": "United states"
+          },
+          "contact_location_state": {
+            "type": "string",
+            "description": "State or region of the contact.",
+            "example": "Texas"
+          },
+          "contact_location_city": {
+            "type": "string",
+            "description": "City of the contact.",
+            "example": "Austin"
+          },
+          "contact_email_address": {
+            "type": "string",
+            "description": "Work email address. `null` when `enrich_email_address` was not requested or nothing was found.",
+            "example": "elon@tesla.com"
+          },
+          "contact_email_address_status": {
+            "type": "string",
+            "example": "deliverable",
+            "enum": [
+              "deliverable",
+              "catch_all",
+              "catch_all_safe",
+              "catch_all_not_safe",
+              "undeliverable",
+              "not_found"
+            ],
+            "description": "Verification verdict. `deliverable`, `catch_all` and `catch_all_safe` are safe to send to. `catch_all_not_safe` and `undeliverable` are not. `catch_all_safe` / `catch_all_not_safe` only appear when catch-all verification is enabled on the account."
+          },
+          "contact_email_address_provider": {
+            "type": "string",
+            "description": "Waterfall vendor that found the email address. Vendors under NDA are reported as `Secret Provider`.",
+            "example": "Secret Provider"
+          },
+          "email_provider": {
+            "type": "string",
+            "description": "Mailbox host of the email address, not a BetterContact vendor. Do not confuse it with `contact_email_address_provider`.",
+            "example": "google"
+          },
+          "contact_phone_number": {
+            "type": "string",
+            "description": "Mobile phone number in E.164 format. `null` when `enrich_phone_number` was not requested or nothing was found.",
+            "example": "+14155550101"
+          },
+          "contact_phone_number_provider": {
+            "type": "string",
+            "description": "Waterfall vendor that found the phone number. Vendors under NDA are reported as `Secret Provider`.",
+            "example": "Secret Provider"
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Company name.",
+            "example": "Tesla"
+          },
+          "company_domain": {
+            "type": "string",
+            "description": "Company domain.",
+            "example": "tesla.com"
+          },
+          "company_description": {
+            "type": "string",
+            "description": "Short company description."
+          },
+          "company_linkedin_url": {
+            "type": "string",
+            "description": "Company LinkedIn page URL.",
+            "example": "https://www.linkedin.com/company/tesla-motors"
+          },
+          "company_industry": {
+            "type": "string",
+            "description": "Company industry.",
+            "example": "Automotive"
+          },
+          "company_type": {
+            "type": "string",
+            "description": "Company type.",
+            "example": "Public Company"
+          },
+          "company_keywords": {
+            "type": "string",
+            "description": "Keywords associated with the company."
+          },
+          "company_founded_year": {
+            "type": "integer",
+            "description": "Year the company was founded.",
+            "example": 2003
+          },
+          "company_employees_range_start": {
+            "type": "integer",
+            "description": "Lower bound of the headcount range.",
+            "example": 10001
+          },
+          "company_employees_range_end": {
+            "type": "integer",
+            "description": "Upper bound of the headcount range.",
+            "example": 50000
+          },
+          "company_headquarters_city": {
+            "type": "string",
+            "description": "Headquarters city.",
+            "example": "Austin"
+          },
+          "company_headquarters_country": {
+            "type": "string",
+            "description": "Headquarters country.",
+            "example": "United states"
+          }
+        }
+      },
+      "RangeFilter": {
+        "type": "object",
+        "description": "Inclusive range. Provide `gte`, `lte` or both.",
+        "properties": {
+          "gte": {
+            "description": "Greater than or equal to."
+          },
+          "lte": {
+            "description": "Lower than or equal to."
+          }
+        }
+      },
+      "CompanyLinkedinUrlFilter": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Company LinkedIn page URLs that must match. Normalised server-side, so both the full URL and the slug are accepted.",
+            "example": [
+              "https://www.linkedin.com/company/tesla-motors"
+            ]
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Company LinkedIn page URLs that must NOT match."
+          }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
+      },
+      "CompanyKeywordsFilter": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Free-text keywords searched across the company profile.",
+            "example": [
+              "fleet management"
+            ]
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keywords that must NOT appear."
+          }
+        },
+        "description": "Free text, no taxonomy. `company_keywords` and `company_description` are searched against the same underlying field, so combining both widens the match rather than narrowing it. `exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
+      },
+      "CompanyDescriptionFilter": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Free-text phrases searched in the company description.",
+            "example": [
+              "B2B SaaS"
+            ]
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Phrases that must NOT appear in the company description."
+          }
+        },
+        "description": "Searched against the same underlying field as `company_keywords`. `exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
+      },
+      "RevenueRangesFilter": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Revenue brackets that must match. Must be exact values from the predefined list, see [Taxonomies - Revenue ranges](/api-reference/taxonomies#revenue-ranges).",
+            "example": [
+              "$20M-$100M",
+              "$100M-$500M"
+            ]
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Revenue brackets that must NOT match."
+          }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
+      },
+      "FundingRoundNamesFilter": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Last funding round names that must match. Must be exact values from the predefined list, see [Taxonomies - Funding round names](/api-reference/taxonomies#funding-round-names).",
+            "example": [
+              "Series A",
+              "Series B"
+            ]
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Last funding round names that must NOT match."
+          }
+        },
+        "description": "`exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
+      },
+      "JobPostingFilter": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Values that must match on the company's active job postings."
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Values that must NOT match on the company's active job postings."
+          }
+        },
+        "description": "Signals based on the company's currently open roles. `exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
       }
     }
   }
