@@ -1,10 +1,42 @@
 ---
 title: "API Rate Limits"
-description: ""
+description: "How many requests per minute you can make, and what happens when you go over"
 ---
 
-All API endpoints share a common rate limit. This limit applies across all endpoints collectively, not individually. When the rate limit is exceeded, the API will return a `429 Too Many Requests` status code.
+Rate limits are counted **per API key**, across all endpoints together rather than per endpoint.
+Going over returns `429 Too Many Requests`.
+
+## Limits
+
+| Plan | Limit |
+| --- | --- |
+| Starter, free and legacy accounts under 1 000 monthly credits | **100 requests / minute** |
+| Pro and accounts from 1 000 monthly credits | **200 requests / minute** |
+| Higher volumes | On request, [contact us](mailto:contact@bettercontact.rocks) |
 
 <Note>
-  API Rate Limit is 60 requests per minute per account (per API key). Would like to have higher API Rate Limits?  [**Contact us**](mailto:contact@bettercontact.rocks).
+  [`GET /account`](/api-reference/endpoint/account) is exempt from these limits, so you can check
+  your balance without spending your budget on it.
 </Note>
+
+Requests carrying an unknown or deactivated API key are throttled much harder, at 5 requests per
+5 minutes per IP. If you are hitting that, fix the key rather than retrying.
+
+## Handling 429
+
+The response is a plain `429` with the body `Retry later`. Back off exponentially and retry: unlike
+`400` or `422`, a `429` request is worth replaying as is.
+
+<Warning>
+  A client stuck in a retry loop that keeps firing at full speed can get the account **blocked**, not
+  just throttled. Always put a real backoff between retries, and cap the number of attempts.
+</Warning>
+
+## Staying under the limit
+
+- Enrich in batches. `POST /async` takes up to 100 leads in a single call, which is one request
+  instead of a hundred.
+- Use a [webhook](/api-reference/webhooks) instead of polling. Polling a large batch every second is
+  the most common way to hit the limit for nothing.
+- When you do poll, wait a few seconds between attempts. See the recipe in
+  [Request statuses](/api-reference/statuses).

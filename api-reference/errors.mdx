@@ -33,7 +33,7 @@ depending on the endpoint, so read both.
 | `404` | Unknown Lead Finder `request_id`. | Check the id, do not retry. |
 | `406` | Unknown enrichment `request_id`. | Check the id, do not retry. |
 | `422` | The request could not be accepted. | Read `message`, do not retry as is. |
-| `429` | [Rate limit](/api-reference/api_rate_limits) exceeded, 60 requests per minute per account. | Back off and retry. |
+| `429` | [Rate limit](/api-reference/api_rate_limits) exceeded. | Back off and retry. |
 | `500` | Unexpected error on our side. | Safe to retry with backoff. |
 
 <Warning>

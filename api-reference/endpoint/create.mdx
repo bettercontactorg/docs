@@ -1,4 +1,23 @@
 ---
 title: 'Enrich leads'
+description: Submit up to 100 leads for waterfall email and phone enrichment.
 openapi: 'POST /async'
 ---
+
+<Note>
+  Provide `first_name`, `last_name` and either `company` or `company_domain`. `company_domain` gives
+  materially better results than a company name. Add `linkedin_url` whenever you have it, and always
+  when you request `enrich_phone_number`.
+</Note>
+
+<Warning>
+  This endpoint is asynchronous. A `201` means the batch was accepted, not that it was enriched.
+  Keep the returned `id` and read [Request statuses](/api-reference/statuses) before you build your
+  polling loop.
+
+  Submissions are **not idempotent**: retrying a `POST` that had actually succeeded enriches the
+  same leads twice and consumes credits twice.
+</Warning>
+
+Anything you put in `custom_fields` comes back untouched in the results, which is the simplest way
+to reconcile enriched leads with your own records.

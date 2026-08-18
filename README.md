@@ -26,13 +26,14 @@ mintlify dev
 Run it from the repo root, where `mint.json` lives. If a page 404s, you are in the wrong directory.
 If the dev server misbehaves, `mintlify install` reinstalls its dependencies.
 
-## Validating the spec
+## Checks
 
 ```bash
-npx @redocly/cli@latest lint api-reference/openapi.json
+npx @redocly/cli@latest lint api-reference/openapi.json   # spec is valid
+node scripts/check-docs.mjs                               # nav and links are consistent
 ```
 
-The spec must stay clean. Run this before opening a PR.
+Both run on every pull request via GitHub Actions. Run them before pushing.
 
 ## Publishing
 

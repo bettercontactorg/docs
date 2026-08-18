@@ -3,3 +3,29 @@ title: New Lead Finder Search
 description: Find new leads based on Company and People criteria.
 openapi: 'POST /lead_finder/async'
 ---
+
+<Note>
+  Several filters only accept **exact** values from a fixed list: industries, technologies,
+  seniority levels, departments, functions, revenue ranges, funding round names and countries. Look
+  them up in [Taxonomies](/api-reference/taxonomies). A value that is not in the list silently
+  matches nothing.
+</Note>
+
+<Warning>
+  `exclude` is applied after the search runs, so a request built only from `exclude` values returns
+  nothing. Always pair it with at least one `include`.
+</Warning>
+
+## Pagination
+
+`limit` and `offset` paginate a single search. `offset` is **zero-based**: keep `limit` constant and
+step `offset` by `limit` on each call.
+
+| Call | `limit` | `offset` | Leads |
+| --- | --- | --- | --- |
+| 1st | `100` | `0` (or omitted) | 1 to 100 |
+| 2nd | `100` | `100` | 101 to 200 |
+| 3rd | `100` | `200` | 201 to 300 |
+
+The total number of matching leads is returned as `summary.leads_found`, so you know how many pages
+to walk. If you do not need pagination, use `max_leads` instead and ignore `limit` and `offset`.
