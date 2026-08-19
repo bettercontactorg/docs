@@ -5,12 +5,15 @@ description: "Find and enrich your leads with the most powerful waterfall aggreg
 
 ## What does BetterContact do?
 
-<Columns cols={2}>
+<Columns cols={3}>
   <Card title="Find new leads" icon="address-book" iconType="solid" href="#waterfall-lead-finder-search" cta="Discover waterfall Lead Finder">
     Based on advanced **Company** and **People** filtering, find the perfect leads matching your criteria, with only fresh and accurate data.
   </Card>
   <Card title="Get lead's contact data" icon="sparkles" iconType="solid" href="#waterfall-email-and-phone-enrichment" cta="Discover waterfall Enrichment">
     Get the **mobile phone number** and **work email address** of the leads you want to reach, and convert them into customers.
+  </Card>
+  <Card title="Enrich a single profile" icon="id-badge" iconType="solid" href="#enrich-profiles" cta="Discover Enrich Profile">
+    Look up **one person or one company** and get their full profile back in the same response, with no polling.
   </Card>
 </Columns>
 
@@ -178,6 +181,45 @@ Then either poll [`GET /async/{request_id}`](/api-reference/endpoint/get), or, b
   </Step>
 </Steps>
 
+## Enrich profiles
+
+The two endpoints above are asynchronous, because a waterfall takes time. When you only need to look
+up **one** person or **one** company, Enrich Profile answers straight away.
+
+<Columns cols={2}>
+  <Card title="Enrich a lead profile" icon="user" iconType="solid" href="/api-reference/enrich_profile/lead">
+    Job title, seniority, location, LinkedIn profile, and the company the person works at.
+
+    **0.1 credit** per profile found.
+  </Card>
+  <Card title="Enrich a company profile" icon="building" iconType="solid" href="/api-reference/enrich_profile/company">
+    Industry, headcount, headquarters, description, keywords, LinkedIn page.
+
+    **Free**, no credit consumed.
+  </Card>
+</Columns>
+
+### How it differs from the rest of the API
+
+<AccordionGroup>
+  <Accordion title="Synchronous: no request_id, no polling" icon="bolt" iconType="regular">
+    One call, one answer. The profile is in the response body under `data`, so there is nothing to poll and no webhook to set up.
+  </Accordion>
+  <Accordion title="Profile data only, no email and no phone" icon="circle-info" iconType="regular">
+    These endpoints never return a work email address or a mobile phone number. For contact data, use the [waterfall enrichment](#waterfall-email-and-phone-enrichment) endpoint.
+  </Accordion>
+  <Accordion title="Nothing is charged when nothing is found" icon="coins" iconType="regular">
+    A lookup that returns no match answers `404` and costs nothing. See [Credits](/api-reference/credits).
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  For a lead, send the contact's `linkedin_url` whenever you have it: it is the most reliable input.
+  Otherwise send `first_name`, `last_name` and `company_domain` together.
+
+  For a company, send `company_domain`, `company_linkedin_url`, or both.
+</Note>
+
 ## Next steps
 
 <Columns cols={2}>
@@ -192,5 +234,8 @@ Then either poll [`GET /async/{request_id}`](/api-reference/endpoint/get), or, b
   </Card>
   <Card title="Errors" icon="triangle-exclamation" href="/api-reference/errors">
     Every status code, and what to do about it.
+  </Card>
+  <Card title="Credits" icon="coins" href="/api-reference/credits">
+    When a credit is consumed, and what happens when you run out.
   </Card>
 </Columns>

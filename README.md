@@ -24,7 +24,15 @@ mintlify dev
 ```
 
 Run it from the repo root, where `mint.json` lives. If a page 404s, you are in the wrong directory.
-If the dev server misbehaves, `mintlify install` reinstalls its dependencies.
+
+Two things the dev server does not reload on its own:
+
+- **`api-reference/openapi.json`.** Add or change an endpoint and you have to restart, otherwise the
+  page renders without its "Try it" playground.
+- **`mint.json`.** The CLI converts it to a `docs.json` on first run and then reads *that* file,
+  ignoring `mint.json` entirely. So after editing the navigation, `rm docs.json` and restart, or the
+  sidebar silently keeps serving the previous version. `docs.json` is generated and gitignored;
+  `mint.json` is the source of truth and the only one the production build sees.
 
 ## Checks
 
