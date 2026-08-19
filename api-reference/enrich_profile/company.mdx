@@ -1,5 +1,5 @@
 ---
-title: 'Enrich a company'
+title: 'Enrich a company profile'
 description: Look up a single company by domain or LinkedIn URL.
 openapi: 'POST /enrich_profile/company'
 ---
@@ -59,14 +59,9 @@ This endpoint accepts the key **either** in the `X-API-Key` header, like every o
 as an `api_key` attribute in the body. The header is the recommended form: it keeps the key out of
 your request payloads and out of your logs.
 
-## Aliases
-
-`POST /single_search/company` is the same action under an older path and behaves identically. Both
-are supported, so nothing breaks if you already call the old one.
-
 <Note>
-  This is the endpoint the Lead Finder points you at when a search turns out to be a single company
-  lookup. See [Errors](/api-reference/errors).
+  This is also the endpoint to use when a Lead Finder search turns out to be a single company
+  lookup: that case is rejected with a `422`. See [Errors](/api-reference/errors).
 </Note>
 
 ## What you get back

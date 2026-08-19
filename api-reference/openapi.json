@@ -207,7 +207,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable. The free Lead Finder search quota is exhausted, the request could not be created, or the search is a single company lookup that belongs on `POST /single_search/company`.",
+            "description": "Unprocessable. The free Lead Finder search quota is exhausted, the request could not be created, or the search is a single company lookup that belongs on [Enrich a company profile](/api-reference/enrich_profile/company).",
             "content": {
               "application/json": {
                 "schema": {
@@ -465,9 +465,9 @@
     },
     "/enrich_profile/company": {
       "post": {
-        "summary": "Enrich a company",
+        "summary": "Enrich a company profile",
         "operationId": "enrichCompany",
-        "description": "Look up a single company by domain, LinkedIn URL, or both. Unlike the other endpoints this one is **synchronous**: the profile comes back in the same response, there is no `request_id` to poll.\n\n**This endpoint does not consume credits.**\n\n`POST /single_search/company` is an alias of the same action and behaves identically.\n\nAuthentication accepts either the `X-API-Key` header like every other endpoint, or an `api_key` attribute in the request body.",
+        "description": "Look up a single company by domain, LinkedIn URL, or both. Unlike the other endpoints this one is **synchronous**: the profile comes back in the same response, there is no `request_id` to poll.\n\n**This endpoint does not consume credits.**\n\nAuthentication accepts either the `X-API-Key` header like every other endpoint, or an `api_key` attribute in the request body.",
         "requestBody": {
           "description": "Company to look up",
           "required": true,
