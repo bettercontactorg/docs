@@ -30,7 +30,7 @@ depending on the endpoint, so read both.
 | `400` | Malformed request. | Fix the payload, do not retry as is. |
 | `401` | API key missing, invalid or deactivated. | Check the `X-API-Key` header. |
 | `402` | Out of credits, or the feature is not on your plan. | Read `message` to tell the two apart. |
-| `404` | Unknown Lead Finder `request_id`. | Check the id, do not retry. |
+| `404` | Unknown Lead Finder `request_id`, or no company matched on [Enrich a company](/api-reference/enrich_profile/company). | Check the input, do not retry. |
 | `406` | Unknown enrichment `request_id`. | Check the id, do not retry. |
 | `422` | The request could not be accepted. | Read `message`, do not retry as is. |
 | `429` | [Rate limit](/api-reference/api_rate_limits) exceeded. | Back off and retry. |
@@ -82,8 +82,9 @@ the `X-API-Key` header, not in an `Authorization: Bearer` header.
 | Message | Cause |
 | --- | --- |
 | `You are out of free lead finder requests. Please upgrade your plan to continue using this feature.` | The free search quota is exhausted. |
-| `You're looking to enrich a company, please use dedicated endpoint: /api/v2/single_search/company` | The search targets a single company domain with `limit: 1` and no other filter. That is a company lookup, not a search. |
+| `You're looking to enrich a company, please use dedicated endpoint: /api/v2/single_search/company` | The search targets a single company domain with `limit: 1` and no other filter. That is a company lookup, not a search: use [Enrich a company](/api-reference/enrich_profile/company) instead. |
 | `Lead finder was not accepted.` | The request failed validation, most often `limit`, `offset` or `max_leads` out of bounds. |
+| `company_domain or company_linkedin_url is required.` | [Enrich a company](/api-reference/enrich_profile/company) was called without any identifier. |
 
 ## Retry policy
 

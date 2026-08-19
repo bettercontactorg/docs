@@ -462,6 +462,123 @@
           }
         }
       }
+    },
+    "/enrich_profile/company": {
+      "post": {
+        "summary": "Enrich a company",
+        "operationId": "enrichCompany",
+        "description": "Look up a single company by domain, LinkedIn URL, or both. Unlike the other endpoints this one is **synchronous**: the profile comes back in the same response, there is no `request_id` to poll.\n\n**This endpoint does not consume credits.**\n\n`POST /single_search/company` is an alias of the same action and behaves identically.\n\nAuthentication accepts either the `X-API-Key` header like every other endpoint, or an `api_key` attribute in the request body.",
+        "requestBody": {
+          "description": "Company to look up",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrichCompanyRequest"
+              },
+              "examples": {
+                "byDomain": {
+                  "summary": "By domain",
+                  "value": {
+                    "company_domain": "microsoft.com"
+                  }
+                },
+                "byLinkedin": {
+                  "summary": "By LinkedIn URL",
+                  "value": {
+                    "company_linkedin_url": "https://www.linkedin.com/company/microsoft"
+                  }
+                },
+                "keyInBody": {
+                  "summary": "With the key in the body",
+                  "value": {
+                    "api_key": "YOUR_API_KEY",
+                    "company_domain": "microsoft.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyProfile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The API key is missing, invalid or deactivated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No company matched the identifier you sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Company was not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Neither `company_domain` nor `company_linkedin_url` was provided.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "company_domain or company_linkedin_url is required."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error on our side, or an upstream failure. Safe to retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Something bad happened"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1308,8 +1425,15 @@
             "example": "Public Company"
           },
           "company_keywords": {
-            "type": "string",
-            "description": "Keywords associated with the company."
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keywords associated with the company.",
+            "example": [
+              "wine industry",
+              "wine"
+            ]
           },
           "company_founded_year": {
             "type": "integer",
@@ -1614,8 +1738,15 @@
             "example": "Public Company"
           },
           "company_keywords": {
-            "type": "string",
-            "description": "Keywords associated with the company."
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keywords associated with the company.",
+            "example": [
+              "wine industry",
+              "wine"
+            ]
           },
           "company_founded_year": {
             "type": "integer",
@@ -1792,6 +1923,139 @@
           }
         },
         "description": "Signals based on the company's currently open roles. `exclude` is applied by BetterContact after the provider call, so a request made only of `exclude` values matches nothing. Always pair it with at least one `include`."
+      },
+      "EnrichCompanyRequest": {
+        "type": "object",
+        "description": "At least one of `company_domain` or `company_linkedin_url` is required. You can send both.",
+        "properties": {
+          "company_domain": {
+            "type": "string",
+            "description": "Company website or domain.",
+            "example": "microsoft.com"
+          },
+          "company_linkedin_url": {
+            "type": "string",
+            "description": "Company LinkedIn page URL.",
+            "example": "https://www.linkedin.com/company/microsoft"
+          },
+          "api_key": {
+            "type": "string",
+            "description": "Your API key. Only needed if you do not send the `X-API-Key` header."
+          }
+        }
+      },
+      "CompanyProfile": {
+        "type": "object",
+        "description": "The company profile. Fields below carry data; every other `company_*` key from the Lead Finder payload is still present and always `null`, kept for payload compatibility. Landbase-only attributes such as `revenue`, `is_b2b` and `technologies_used` are not returned here.",
+        "properties": {
+          "company_id": {
+            "type": "integer",
+            "description": "BetterContact internal company identifier.",
+            "example": 107993854
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Company name.",
+            "example": "Bodegas Aragonesas S.A."
+          },
+          "company_domain": {
+            "type": "string",
+            "description": "Company domain.",
+            "example": "bodegasaragonesas.com"
+          },
+          "company_website": {
+            "type": "string",
+            "description": "Company website. Same value as `company_domain`.",
+            "example": "bodegasaragonesas.com"
+          },
+          "company_description": {
+            "type": "string",
+            "description": "Company description.",
+            "example": "Bodegas Aragonesas S.A. is a winery..."
+          },
+          "company_linkedin_url": {
+            "type": "string",
+            "description": "Company LinkedIn page URL.",
+            "example": "https://www.linkedin.com/company/bodegas-aragonesas-s-a-"
+          },
+          "company_industry": {
+            "type": "string",
+            "description": "Company industry.",
+            "example": "Beverage Manufacturing"
+          },
+          "company_type": {
+            "type": "string",
+            "description": "Company type, lowercased with spaces replaced by underscores. `Privately Held` becomes `privately_held`.",
+            "example": "privately_held"
+          },
+          "company_founded_year": {
+            "type": "integer",
+            "description": "Year the company was founded.",
+            "example": 1984
+          },
+          "company_employees_number": {
+            "type": "integer",
+            "description": "Employee count.",
+            "example": 20
+          },
+          "company_employees_range_start": {
+            "type": "integer",
+            "description": "Lower bound of the headcount range, parsed from the size range. `11-50` gives `11`.",
+            "example": 11
+          },
+          "company_employees_range_end": {
+            "type": "integer",
+            "description": "Upper bound of the headcount range. `null` on open ended ranges: `10000+` sets the start only.",
+            "example": 50,
+            "nullable": true
+          },
+          "company_headquarters": {
+            "type": "string",
+            "description": "Full headquarters address.",
+            "example": "Carr. de Magallón a la Almunia, S/N; Fuendejalón, Aragón / España 50529, ES"
+          },
+          "company_head_quarters_city": {
+            "type": "string",
+            "description": "Headquarters city. May be an empty string when the source has no city.",
+            "example": ""
+          },
+          "company_head_quarters_country": {
+            "type": "string",
+            "description": "Headquarters country.",
+            "example": "Spain"
+          },
+          "company_address_city": {
+            "type": "string",
+            "description": "City part of the headquarters address.",
+            "example": ""
+          },
+          "company_address_state": {
+            "type": "string",
+            "description": "State or region part of the headquarters address.",
+            "example": ""
+          },
+          "company_address_country": {
+            "type": "string",
+            "description": "Country part of the headquarters address.",
+            "example": "Spain"
+          },
+          "company_address_zipcode": {
+            "type": "string",
+            "description": "Postal code part of the headquarters address.",
+            "example": ""
+          },
+          "company_keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keywords associated with the company.",
+            "example": [
+              "wine industry",
+              "wine"
+            ]
+          }
+        }
       }
     }
   }

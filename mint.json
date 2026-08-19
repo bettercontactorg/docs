@@ -82,6 +82,12 @@
       ]
     },
     {
+      "group": "Enrich Profile",
+      "pages": [
+        "api-reference/enrich_profile/company"
+      ]
+    },
+    {
       "group": "My account",
       "pages": [
         "api-reference/endpoint/account"
