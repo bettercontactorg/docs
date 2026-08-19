@@ -20,6 +20,12 @@ depending on the endpoint, so read both.
   still running. See [Request statuses](/api-reference/statuses).
 </Note>
 
+<Warning>
+  On [Enrich a lead profile](/api-reference/enrich_profile/lead), an unexpected internal failure
+  comes back as `200 OK` with `success: false`. Read `success` on every synchronous endpoint rather
+  than trusting the HTTP status alone.
+</Warning>
+
 ## Status codes
 
 | Code | Meaning | What to do |
@@ -30,7 +36,7 @@ depending on the endpoint, so read both.
 | `400` | Malformed request. | Fix the payload, do not retry as is. |
 | `401` | API key missing, invalid or deactivated. | Check the `X-API-Key` header. |
 | `402` | Out of credits, or the feature is not on your plan. | Read `message` to tell the two apart. |
-| `404` | Unknown Lead Finder `request_id`, or no company matched on [Enrich a company profile](/api-reference/enrich_profile/company). | Check the input, do not retry. |
+| `404` | Unknown Lead Finder `request_id`, or nothing matched on an [Enrich Profile](/api-reference/enrich_profile/lead) lookup. | Check the input, do not retry. |
 | `406` | Unknown enrichment `request_id`. | Check the id, do not retry. |
 | `422` | The request could not be accepted. | Read `message`, do not retry as is. |
 | `429` | [Rate limit](/api-reference/api_rate_limits) exceeded. | Back off and retry. |
@@ -67,6 +73,7 @@ the `X-API-Key` header, not in an `Authorization: Bearer` header.
 | Message | Cause |
 | --- | --- |
 | `You ran out of credits` | The account balance is empty. |
+| `You do not have enough credits to perform a profile search.` | Not enough credits for an [Enrich a lead profile](/api-reference/enrich_profile/lead) lookup. |
 | `You do not have enough tokens to use Lead Finder API.` | Same, on the Lead Finder API. |
 | `You don't have access to phone number enrichment feature. Please upgrade your plan.` | `enrich_phone_number` is `true` without the phone add-on. |
 | `You don't have access to verify catch_all feature. Please upgrade your plan.` | `verify_catch_all` is `true` without the catch-all add-on. |
@@ -85,6 +92,7 @@ the `X-API-Key` header, not in an `Authorization: Bearer` header.
 | `You're looking to enrich a company, please use dedicated endpoint: ...` | The search targets a single company domain with `limit: 1` and no other filter. That is a company lookup, not a search: use [Enrich a company profile](/api-reference/enrich_profile/company) instead. |
 | `Lead finder was not accepted.` | The request failed validation, most often `limit`, `offset` or `max_leads` out of bounds. |
 | `company_domain or company_linkedin_url is required.` | [Enrich a company profile](/api-reference/enrich_profile/company) was called without any identifier. |
+| `Linkedin url OR First_name, last_name, company and company domain is missing` | [Enrich a lead profile](/api-reference/enrich_profile/lead) was called without `linkedin_url` and without the full `first_name` + `last_name` + `company_domain` trio. |
 
 ## Retry policy
 

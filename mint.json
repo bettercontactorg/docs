@@ -84,6 +84,7 @@
     {
       "group": "Enrich Profile",
       "pages": [
+        "api-reference/enrich_profile/lead",
         "api-reference/enrich_profile/company"
       ]
     },

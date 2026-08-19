@@ -579,6 +579,132 @@
           }
         }
       }
+    },
+    "/enrich_profile/lead": {
+      "post": {
+        "summary": "Enrich a lead profile",
+        "operationId": "enrichLead",
+        "description": "Look up a single person and get their profile plus their current company. This endpoint is **synchronous**: the profile comes back in the same response, there is no `request_id` to poll.\n\n**Cost: 0.1 credit per profile found.** Nothing is charged when no profile matches.\n\nIt returns profile data only. It does **not** return an email address or a phone number: for that, use [Enrich leads](/api-reference/endpoint/create).\n\nAuthentication accepts either the `X-API-Key` header like every other endpoint, or an `api_key` attribute in the request body.",
+        "requestBody": {
+          "description": "Lead to look up",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrichLeadRequest"
+              },
+              "examples": {
+                "byLinkedin": {
+                  "summary": "By LinkedIn URL (recommended)",
+                  "value": {
+                    "linkedin_url": "https://www.linkedin.com/in/veronick-martinuzzi-a4533373"
+                  }
+                },
+                "byNameAndDomain": {
+                  "summary": "By name and company domain",
+                  "value": {
+                    "first_name": "Veronick",
+                    "last_name": "Martinuzzi",
+                    "company_domain": "hondaresearch.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile found. Also returned with `success: false` when an unexpected error occurs, so always read `success`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/LeadProfile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No request body was sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Data parameter is required."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The API key is missing, invalid or deactivated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Not enough credits to run the lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "You do not have enough credits to perform a profile search."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No profile matched. Nothing is charged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Profile was not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Neither `linkedin_url` nor the `first_name` + `last_name` + `company_domain` combination was provided.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Linkedin url OR First_name, last_name, company and company domain is missing"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2053,6 +2179,200 @@
             "example": [
               "wine industry",
               "wine"
+            ]
+          }
+        }
+      },
+      "EnrichLeadRequest": {
+        "type": "object",
+        "description": "Identify the lead in one of two ways:\n\n- **By LinkedIn URL**: send `linkedin_url` alone. This is the most reliable form.\n- **By name and company**: send `first_name`, `last_name` and `company_domain`.\n\n`linkedin_url` takes precedence: when it is present the other attributes are ignored.",
+        "properties": {
+          "linkedin_url": {
+            "type": "string",
+            "description": "Public LinkedIn profile URL of the contact. Sufficient on its own.",
+            "example": "https://www.linkedin.com/in/veronick-martinuzzi-a4533373"
+          },
+          "first_name": {
+            "type": "string",
+            "description": "First name. Required when you do not send `linkedin_url`.",
+            "example": "Veronick"
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name. Required when you do not send `linkedin_url`.",
+            "example": "Martinuzzi"
+          },
+          "company_domain": {
+            "type": "string",
+            "description": "Company domain. Required when you do not send `linkedin_url`.",
+            "example": "hondaresearch.com"
+          },
+          "company": {
+            "type": "string",
+            "description": "Company name. Complements `company_domain`, it cannot replace it.",
+            "example": "Honda R&D Americas"
+          },
+          "api_key": {
+            "type": "string",
+            "description": "Your API key. Only needed if you do not send the `X-API-Key` header."
+          }
+        }
+      },
+      "LeadProfile": {
+        "type": "object",
+        "description": "The lead profile. These are all the keys returned: unlike the enrichment and Lead Finder payloads there are no extra always-null legacy keys.",
+        "properties": {
+          "contact_id": {
+            "type": "integer",
+            "description": "BetterContact internal contact identifier.",
+            "example": 98012430,
+            "nullable": true
+          },
+          "contact_first_name": {
+            "type": "string",
+            "description": "First name.",
+            "example": "Veronick",
+            "nullable": true
+          },
+          "contact_last_name": {
+            "type": "string",
+            "description": "Last name.",
+            "example": "Martinuzzi",
+            "nullable": true
+          },
+          "contact_full_name": {
+            "type": "string",
+            "description": "First and last name concatenated.",
+            "example": "Veronick Martinuzzi",
+            "nullable": true
+          },
+          "contact_job_title": {
+            "type": "string",
+            "description": "Current job title.",
+            "example": "Development solutions sr. principal engineer",
+            "nullable": true
+          },
+          "contact_seniority": {
+            "type": "string",
+            "description": "Seniority level.",
+            "example": "Senior",
+            "nullable": true
+          },
+          "contact_industry": {
+            "type": "string",
+            "description": "Industry of the contact.",
+            "example": "Motor vehicle manufacturing",
+            "nullable": true
+          },
+          "contact_linkedin_headline": {
+            "type": "string",
+            "description": "LinkedIn headline. Often an empty string rather than null.",
+            "example": "",
+            "nullable": true
+          },
+          "contact_linkedin_profile_url": {
+            "type": "string",
+            "description": "Public LinkedIn profile URL.",
+            "example": "https://www.linkedin.com/in/veronick-martinuzzi-a4533373",
+            "nullable": true
+          },
+          "contact_location_continent": {
+            "type": "string",
+            "description": "Continent.",
+            "nullable": true
+          },
+          "contact_location_country": {
+            "type": "string",
+            "description": "Country.",
+            "example": "United states",
+            "nullable": true
+          },
+          "contact_location_state": {
+            "type": "string",
+            "description": "State or region.",
+            "example": "Ohio",
+            "nullable": true
+          },
+          "contact_location_city": {
+            "type": "string",
+            "description": "City.",
+            "nullable": true
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Company name.",
+            "example": "Honda rd americas",
+            "nullable": true
+          },
+          "company_domain": {
+            "type": "string",
+            "description": "Company domain.",
+            "example": "hondaresearch.com",
+            "nullable": true
+          },
+          "company_description": {
+            "type": "string",
+            "description": "Company description.",
+            "nullable": true
+          },
+          "company_linkedin_url": {
+            "type": "string",
+            "description": "Company LinkedIn page URL.",
+            "example": "https://www.linkedin.com/company/honda-r&d",
+            "nullable": true
+          },
+          "company_industry": {
+            "type": "string",
+            "description": "Company industry.",
+            "example": "Motor vehicle manufacturing",
+            "nullable": true
+          },
+          "company_type": {
+            "type": "string",
+            "description": "Company type.",
+            "nullable": true
+          },
+          "company_founded_year": {
+            "type": "integer",
+            "description": "Year the company was founded.",
+            "nullable": true
+          },
+          "company_employees_range_start": {
+            "type": "integer",
+            "description": "Lower bound of the headcount range.",
+            "example": 10001,
+            "nullable": true
+          },
+          "company_employees_range_end": {
+            "type": "integer",
+            "description": "Upper bound of the headcount range. `null` on open ended ranges such as `10001+`.",
+            "nullable": true
+          },
+          "company_headquarters_city": {
+            "type": "string",
+            "description": "Headquarters city. Can carry a full street address rather than a bare city name.",
+            "example": "Ohio center; 21001 state route 739; raymond",
+            "nullable": true
+          },
+          "company_headquarters_country": {
+            "type": "string",
+            "description": "Headquarters country.",
+            "example": "United states",
+            "nullable": true
+          },
+          "company_keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keywords associated with the company.",
+            "example": [
+              "automotive",
+              "auto development",
+              "design",
+              "research",
+              "products",
+              "honda"
             ]
           }
         }
