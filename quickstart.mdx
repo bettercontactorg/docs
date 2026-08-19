@@ -1,107 +1,241 @@
 ---
 title: "Quickstart"
-description: "Find and Enrich your leads with the most powerful waterfall aggregator on the market"
+description: "Find and enrich your leads with the most powerful waterfall aggregator on the market"
 ---
 
-# What does BetterContact?
+## What does BetterContact do?
 
-<Columns cols={2}>
-  <Card title="Find new leads" icon="address-book" iconType="solid" href="https://doc.bettercontact.rocks/quickstart#waterfall-lead-finder-search" cta="Discover waterfall Lead Finder">
-    Based on advanced **Company** and **People** filtering, find the perfect leads matching your criteria—only fresh and accurate data.
+<Columns cols={3}>
+  <Card title="Find new leads" icon="address-book" iconType="solid" href="#waterfall-lead-finder-search" cta="Discover waterfall Lead Finder">
+    Based on advanced **Company** and **People** filtering, find the perfect leads matching your criteria, with only fresh and accurate data.
   </Card>
-  <Card title="Get lead's contact data" icon="sparkles" iconType="solid" href="https://doc.bettercontact.rocks/quickstart#waterfall-email-%26-phone-enrichment" cta="Discover waterfall Enrichment">
-    Get**mobile phone number**  and **work email address** of your leads you want to reach and convert them into customers.
+  <Card title="Get lead's contact data" icon="sparkles" iconType="solid" href="#waterfall-email-and-phone-enrichment" cta="Discover waterfall Enrichment">
+    Get the **mobile phone number** and **work email address** of the leads you want to reach, and convert them into customers.
+  </Card>
+  <Card title="Enrich a single profile" icon="id-badge" iconType="solid" href="#enrich-profiles" cta="Discover Enrich Profile">
+    Look up **one person or one company** and get their full profile back in the same response, with no polling.
   </Card>
 </Columns>
 
-# Waterfall Lead Finder Search
+## Your first call
 
-## Enriched Data
+Grab your API key in [your API settings](https://app.bettercontact.rocks/api_requests), then enrich
+a single lead:
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://app.bettercontact.rocks/api/v2/async \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "enrich_email_address": true,
+    "enrich_phone_number": false,
+    "data": [
+      { "first_name": "Elon", "last_name": "Musk", "company_domain": "tesla.com" }
+    ]
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://app.bettercontact.rocks/api/v2/async", {
+  method: "POST",
+  headers: {
+    "X-API-Key": process.env.BETTERCONTACT_API_KEY,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    enrich_email_address: true,
+    enrich_phone_number: false,
+    data: [{ first_name: "Elon", last_name: "Musk", company_domain: "tesla.com" }],
+  }),
+});
+
+const { id } = await res.json(); // this is your request_id
+```
+
+```python Python
+import os, requests
+
+res = requests.post(
+    "https://app.bettercontact.rocks/api/v2/async",
+    headers={"X-API-Key": os.environ["BETTERCONTACT_API_KEY"]},
+    json={
+        "enrich_email_address": True,
+        "enrich_phone_number": False,
+        "data": [{"first_name": "Elon", "last_name": "Musk", "company_domain": "tesla.com"}],
+    },
+)
+
+request_id = res.json()["id"]
+```
+
+</CodeGroup>
+
+You get a `request_id` back immediately. Enrichment runs in the background.
+
+<Warning>
+  **Both APIs are asynchronous, and `2xx` does not mean the results are ready.**
+
+  While a request is running, the `GET` endpoints answer `202` with an empty body. Only
+  `status: "terminated"` guarantees results. Branch on `status`, never on the HTTP code alone.
+  See [Request statuses](/api-reference/statuses).
+</Warning>
+
+Then either poll [`GET /async/{request_id}`](/api-reference/endpoint/get), or, better, pass a
+[`webhook`](/api-reference/webhooks) in the submit call and let us push the results to you.
+
+## Waterfall Lead Finder search
+
+### Data you get back
 
 <Columns cols={2}>
   <Card title="People information" icon="user-check" iconType="solid">
-    Get all the up to date Contact information, such as Job Title, Full Name, Linkedin profile url, Location, Skills, ...
+    Up to date contact information: job title, full name, LinkedIn profile URL, location, seniority, and more.
   </Card>
   <Card title="Company information" icon="building-circle-check" iconType="solid">
-    Get all the up-to-date contact's current Company information, such as Name, Domain, HQ Location, Industry, Number of employees, ...
+    Up to date information on the contact's current company: name, domain, HQ location, industry, headcount, and more.
   </Card>
 </Columns>
 
-## Principles
+### Principles
 
 <AccordionGroup>
-  <Accordion title="Gather data from multiple sources" icon="diagram-project" iconType="regular">
-    
+  <Accordion title="Filter on companies and on people at once" icon="diagram-project" iconType="regular">
+    Company criteria (industry, headcount, HQ, technologies, funding, hiring signals) and people criteria (job title, seniority, department, skills, location) are applied in the same search. See the full list on the [endpoint reference](/api-reference/endpoint/lead_finder_post).
   </Accordion>
-  <Accordion title="Compile and verify data accuracy" icon="wand-magic-sparkles" iconType="regular">
-    
+  <Accordion title="Include and exclude on every filter" icon="filter-circle-xmark" iconType="regular">
+    Every list filter takes an `include` and an `exclude` array. Exclusions are enforced by BetterContact after the search runs, which is why a request made only of `exclude` values matches nothing: always pair it with at least one `include`.
   </Accordion>
-  <Accordion title="Deep check on criteria matching" icon="check-double" iconType="regular">
-    
+  <Accordion title="Control how results spread across accounts" icon="building-user" iconType="regular">
+    `limit_per_company` caps how many leads come back per company, so a search returns a slice of many accounts instead of one full org chart. Combine it with `limit` and `offset` to paginate through the whole result set.
   </Accordion>
 </AccordionGroup>
 
-## How the API works
+### How the API works
 
-<AccordionGroup>
-  <Accordion title="Submit your Lead Finder Search" icon="1" iconType="solid">
-    Based on your People and Company criteria, apply your filters and generate a new Lead Finder search. [\> See endpoint](https://doc.bettercontact.rocks/api-reference/endpoint/lead_finder_post)
-  </Accordion>
-  <Accordion title="Get your Lead Finder Search results" icon="2" iconType="solid">
-    Provide a webhook url or fetch the results to get the leads found in the Lead Finder Search matching your criteria.[ \> See endpoint](https://doc.bettercontact.rocks/api-reference/endpoint/lead_finder_get)
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Submit your Lead Finder search" icon="1">
+    Apply your People and Company criteria and create a new search.
+    [See endpoint](/api-reference/endpoint/lead_finder_post)
+
+    Several filters only accept exact values from a fixed list. See [Taxonomies](/api-reference/taxonomies).
+  </Step>
+  <Step title="Get your results" icon="2">
+    Provide a webhook URL, or fetch the leads matching your criteria.
+    [See endpoint](/api-reference/endpoint/lead_finder_get)
+  </Step>
+</Steps>
 
 <Note>
-  **Lead Finder Search API is an async API.**\
-  Meaning you will have to submit your contacts to enrich then wait a few minutes to get the enriched data on your provided webhook or fetch the enriched data with the according endpoint.
+  Set `enrich_email_address` or `enrich_phone_number` on the search itself to get verified contact
+  data on every lead found, without a second call to the enrichment API.
 </Note>
 
-# Waterfall Email & Phone Enrichment
+## Waterfall email and phone enrichment
 
-## Enriched data
+### Data you get back
 
 <CardGroup>
   <Card title="Mobile phone number" icon="phone" iconType="solid" href="/api-reference/endpoint/create">
-    Get any lead’s verified mobile phone number.
+    Get any lead's verified mobile phone number.
   </Card>
   <Card title="Work email address" icon="envelope" iconType="solid" href="/api-reference/endpoint/create">
-    Get any lead’s verified work email address.
+    Get any lead's verified work email address.
   </Card>
 </CardGroup>
 
-## Principles
+### Principles
 
 <AccordionGroup>
   <Accordion title="Request providers in relevant sequence" icon="diagram-project" iconType="regular">
-    According to the information provided about the lead, BetterContact determines the optimal provider sequence to maximize the enrichment rate.
+    According to the information provided about the lead, BetterContact determines the optimal provider sequence to maximise the enrichment rate.
   </Accordion>
   <Accordion title="Verify the provided contact data" icon="check-double" iconType="regular">
     Once a provider returns contact data, we verify it through various layers and only push back valid data to you.
   </Accordion>
   <Accordion title="Request providers until valid data is found" icon="loader" iconType="regular">
-    If one provider’s data is invalid, BetterContact will request the following providers until valid data is found.
+    If one provider's data is invalid, BetterContact will request the following providers until valid data is found.
   </Accordion>
 </AccordionGroup>
 
 <Note>
-  **BetterContact also verifies the catch_all email**<Tooltip tip="">.</Tooltip>
+  **BetterContact also verifies catch-all emails.**
 
-  Meaning you can now contact unreachable leads without compromising your sending domain reputation.
+  Set `verify_catch_all` to `true` and the status comes back as `catch_all_safe` or
+  `catch_all_not_safe` instead of a plain `catch_all`, so you can contact otherwise unreachable
+  leads without compromising your sending domain reputation.
 </Note>
 
-## How the API works
+### How the API works
+
+<Steps>
+  <Step title="Submit your lead(s) to enrich" icon="1">
+    A single endpoint enriches one lead or a batch of up to 100 at a time.
+    [See endpoint](/api-reference/endpoint/create)
+  </Step>
+  <Step title="Fetch results" icon="2">
+    The waterfall needs a few seconds to query the providers and verify the data. Fetch the results,
+    or pass a `webhook` URL in the submit call to get them pushed to you.
+    [See endpoint](/api-reference/endpoint/get)
+  </Step>
+</Steps>
+
+## Enrich profiles
+
+The two endpoints above are asynchronous, because a waterfall takes time. When you only need to look
+up **one** person or **one** company, Enrich Profile answers straight away.
+
+<Columns cols={2}>
+  <Card title="Enrich a lead profile" icon="user" iconType="solid" href="/api-reference/enrich_profile/lead">
+    Job title, seniority, location, LinkedIn profile, and the company the person works at.
+
+    **0.1 credit** per profile found.
+  </Card>
+  <Card title="Enrich a company profile" icon="building" iconType="solid" href="/api-reference/enrich_profile/company">
+    Industry, headcount, headquarters, description, keywords, LinkedIn page.
+
+    **Free**, no credit consumed.
+  </Card>
+</Columns>
+
+### How it differs from the rest of the API
 
 <AccordionGroup>
-  <Accordion title="Submit your lead(s) to enrich" icon="1">
-    BetterContact’s API has a single endpoint to enrich a single lead or a batch up to 100 contacts at a time. [\>See endpoint](/api-reference/endpoint/create)
+  <Accordion title="Synchronous: no request_id, no polling" icon="bolt" iconType="regular">
+    One call, one answer. The profile is in the response body under `data`, so there is nothing to poll and no webhook to set up.
   </Accordion>
-  <Accordion title="Fetch results" icon="2">
-    Waterfall enrichment requires a couple of seconds to request all providers and verify data. Once you have submitted your leads, you have to fetch the enriched data. Alternatively, you can provide a webhook URL in the submit call to instantly get the results without the need to fetch it. [\>See endpoint](/api-reference/endpoint/get)
+  <Accordion title="Profile data only, no email and no phone" icon="circle-info" iconType="regular">
+    These endpoints never return a work email address or a mobile phone number. For contact data, use the [waterfall enrichment](#waterfall-email-and-phone-enrichment) endpoint.
+  </Accordion>
+  <Accordion title="Nothing is charged when nothing is found" icon="coins" iconType="regular">
+    A lookup that returns no match answers `404` and costs nothing. See [Credits](/api-reference/credits).
   </Accordion>
 </AccordionGroup>
 
 <Note>
-  **Waterfall enrichment API is an async API.**\
-  Meaning you will have to submit your contacts to enrich then wait a few minutes to get the enriched data on your provided webhook or fetch the enriched data with the according endpoint.
+  For a lead, send the contact's `linkedin_url` whenever you have it: it is the most reliable input.
+  Otherwise send `first_name`, `last_name` and `company_domain` together.
+
+  For a company, send `company_domain`, `company_linkedin_url`, or both.
 </Note>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    The `X-API-Key` header, and where to find your key.
+  </Card>
+  <Card title="Request statuses" icon="hourglass-half" href="/api-reference/statuses">
+    Know when a request is really done.
+  </Card>
+  <Card title="Webhooks" icon="bolt" href="/api-reference/webhooks">
+    Stop polling, get results pushed to you.
+  </Card>
+  <Card title="Errors" icon="triangle-exclamation" href="/api-reference/errors">
+    Every status code, and what to do about it.
+  </Card>
+  <Card title="Credits" icon="coins" href="/api-reference/credits">
+    When a credit is consumed, and what happens when you run out.
+  </Card>
+</Columns>

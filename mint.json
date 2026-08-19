@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "API Documentation",
+  "name": "BetterContact",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -25,18 +25,7 @@
     "name": "Go to app",
     "url": "https://app.bettercontact.rocks"
   },
-  "tabs": [
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    }
-  ],
   "anchors": [
-    {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://doc.bettercontact.rocks"
-    },
     {
       "name": "App",
       "icon": "square-code",
@@ -51,26 +40,27 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["quickstart"]
+      "pages": [
+        "quickstart"
+      ]
     },
     {
-      "group": "API Documentation",
+      "group": "Using the API",
       "pages": [
-          "api-reference/authentication",
-          "api-reference/api_rate_limits"
-        ]
-    },
-    {
-      "group": "My account",
-      "pages": [
-        "api-reference/endpoint/account"
+        "api-reference/authentication",
+        "api-reference/statuses",
+        "api-reference/webhooks",
+        "api-reference/errors",
+        "api-reference/credits",
+        "api-reference/api_rate_limits"
       ]
     },
     {
       "group": "Lead Finder - Get new leads",
       "pages": [
         "api-reference/endpoint/lead_finder_post",
-        "api-reference/endpoint/lead_finder_get"
+        "api-reference/endpoint/lead_finder_get",
+        "api-reference/taxonomies"
       ]
     },
     {
@@ -78,6 +68,19 @@
       "pages": [
         "api-reference/endpoint/create",
         "api-reference/endpoint/get"
+      ]
+    },
+    {
+      "group": "Enrich Profile",
+      "pages": [
+        "api-reference/enrich_profile/lead",
+        "api-reference/enrich_profile/company"
+      ]
+    },
+    {
+      "group": "My account",
+      "pages": [
+        "api-reference/endpoint/account"
       ]
     }
   ],

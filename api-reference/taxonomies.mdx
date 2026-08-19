@@ -1,0 +1,2245 @@
+---
+title: "Taxonomies"
+description: "Reference values for Lead Finder filter parameters"
+---
+
+When sending values to the [Lead Finder](/api-reference/endpoint/lead_finder_post) endpoint, several filters require **exact** values from a predefined list. Use the references below to look up accepted values.
+
+<Note>
+  Lookup is case-sensitive — `"Software Development"` and `"software development"` are not equivalent.
+</Note>
+
+These taxonomies are derived from the Landbase data provider. They may evolve over time — bookmark this page.
+
+## Industries
+
+Used by `company_industry`. **120 values.**
+
+<Accordion title="Show all industries">
+```
+Accounting
+Airlines/Aviation
+Alternative Medicine
+Animation
+Apparel & Fashion
+Architecture & Planning
+Automotive
+Aviation & Aerospace
+Banking
+Biotechnology
+Broadcast Media
+Building Materials
+Business Supplies & Equipment
+Capital Markets
+Chemicals
+Civic & Social Organization
+Civil Engineering
+Commercial Real Estate
+Computer & Network Security
+Computer Games
+Computer Hardware
+Computer Networking
+Computer Software
+Construction
+Consumer Electronics
+Consumer Goods
+Consumer Services
+Cosmetics
+Defense & Space
+Design
+E-Learning
+Education Management
+Electrical & Electronic Manufacturing
+Entertainment
+Environmental Services
+Events Services
+Executive Office
+Facilities Services
+Financial Services
+Fine Art
+Food & Beverages
+Food Production
+Gambling & Casinos
+Government Administration
+Government Relations
+Graphic Design
+Health, Wellness & Fitness
+Higher Education
+Hospital & Health Care
+Hospitality
+Human Resources
+Individual & Family Services
+Industrial Automation
+Information Services
+Information Technology & Services
+Insurance
+International Affairs
+International Trade & Development
+Internet
+Investment Banking
+Investment Management
+Law Enforcement
+Law Practice
+Legal Services
+Leisure, Travel & Tourism
+Logistics & Supply Chain
+Luxury Goods & Jewelry
+Management Consulting
+Maritime
+Market Research
+Marketing & Advertising
+Mechanical or Industrial Engineering
+Media Production
+Medical Device
+Medical Practice
+Mental Health Care
+Military
+Mining & Metals
+Motion Pictures & Film
+Music
+Nanotechnology
+Non-profit Organization Management
+Oil & Energy
+Online Media
+Outsourcing/Offshoring
+Package/Freight Delivery
+Performing Arts
+Pharmaceuticals
+Philanthropy
+Photography
+Political Organization
+Primary/Secondary Education
+Professional Training & Coaching
+Program Development
+Public Policy
+Public Relations & Communications
+Publishing
+Real Estate
+Religious Institutions
+Renewables & Environment
+Research
+Restaurants
+Retail
+Security & Investigations
+Semiconductors
+Shipbuilding
+Software Development
+Sports
+Staffing & Recruiting
+Telecommunications
+Think Tanks
+Translation & Localization
+Transportation/Trucking/Railroad
+Utilities
+Venture Capital & Private Equity
+Veterinary
+Wholesale
+Wine & Spirits
+Wireless
+Writing & Editing
+```
+</Accordion>
+
+## Departments
+
+Used by `lead_department`. **27 values.**
+
+- `Engineering`
+- `Software Development`
+- `Sales`
+- `Marketing`
+- `Finance`
+- `Operations`
+- `Human Resources`
+- `Product Management`
+- `Design`
+- `Customer Success`
+- `Legal`
+- `Information Technology`
+- `Research & Development`
+- `Business Development`
+- `Communications`
+- `Data & Analytics`
+- `Consulting`
+- `Healthcare`
+- `Education`
+- `Administrative`
+- `Accounting`
+- `Strategy`
+- `Procurement`
+- `Quality Assurance`
+- `Recruiting`
+- `Public Relations`
+- `Media & Content`
+
+## Functions
+
+Used by `lead_function`. Functions accept the **same values as Departments above** — both filter on the same underlying field (Landbase `member_departments`). If you set both `lead_department` and `lead_function` in the same request, the values are merged.
+
+## Seniority levels
+
+Used by `lead_seniority`. **12 values.**
+
+- `c_suite`
+- `vp`
+- `director`
+- `head`
+- `manager`
+- `senior`
+- `mid-level`
+- `entry`
+- `founder`
+- `owner`
+- `partner`
+- `intern`
+
+## Company size ranges
+
+Listed for reference. **9 values.**
+
+You don't pass these strings directly via the API — instead, set `company_headcount_min` and/or `company_headcount_max` (integers), and the request is converted server-side into overlapping size ranges from this list.
+
+- `0-1`
+- `1-10`
+- `11-50`
+- `51-200`
+- `201-500`
+- `501-1000`
+- `1001-5000`
+- `5001-10000`
+- `10001+`
+
+## Revenue ranges
+
+Used by `revenue_ranges`. **9 values.**
+
+- `$0-$1M`
+- `$1M-$5M`
+- `$5M-$20M`
+- `$20M-$100M`
+- `$100M-$500M`
+- `$500M-$1B`
+- `$1B-$5B`
+- `$5B-$10B`
+- `$10B+`
+
+## Funding round names
+
+Used by `last_funding_round_names`. **29 values.**
+
+- `Angel Round`
+- `Pre Seed Round`
+- `Seed Round`
+- `Series A`
+- `Series B`
+- `Series C`
+- `Series D`
+- `Series E`
+- `Series F`
+- `Series G`
+- `Series H`
+- `Series I`
+- `Series J`
+- `Convertible Note`
+- `Corporate Round`
+- `Venture Round`
+- `Grant`
+- `Private Equity Round`
+- `Post-IPO Equity`
+- `Post-IPO Debt`
+- `Post-IPO Secondary`
+- `Equity Crowdfunding`
+- `Product Crowdfunding`
+- `Initial Coin Offering`
+- `Debt Financing`
+- `Non Equity Assistance`
+- `Secondary Market`
+- `Funding Round`
+
+## Technologies
+
+Used by `company_technologies`. **1757 values.**
+
+<Accordion title="Show all technologies">
+```
+amp
+well
+microsoft
+impact
+c
+linkedin
+facebook
+python
+adobe
+ups
+javascript
+instagram
+html
+react
+java
+linux
+medium
+git
+box
+salesforce
+autocad
+mix
+aos
+mysql
+docker
+youtube
+php
+wordpress
+chef
+google analytics
+spring
+twitter
+angular
+dell
+electric
+kubernetes
+segment
+visa
+vmware
+recognize
+postgresql
+google ads
+tiktok
+github
+canva
+ease
+sprint
+figma
+jenkins
+zoom
+mongodb
+upkeep
+jquery
+prototype
+quickbooks
+terraform
+swift
+operative
+asp.net
+square
+apache
+json
+deputy
+sage
+solidworks
+bootstrap
+google cloud
+gmail
+ansible
+nodejs
+selenium
+nosql
+unix
+workday
+signal
+postman
+shopify
+slack
+iam
+redis
+laravel
+unity
+charter
+grafana
+influential
+django
+redux
+adp
+rds
+elk
+servicenow
+vue.js
+ecc
+sketch
+graphql
+windows 10
+market leader
+netsuite
+informatica
+google workspace
+google sheets
+flutter
+hunter
+elasticsearch
+snowflake
+hibernate
+matlab
+trello
+asana
+autodesk
+primer
+mailchimp
+prometheus
+hcm
+carta
+indeed
+looker
+angularjs
+junit
+rabbitmq
+fortinet
+reply
+ubuntu
+skype
+splunk
+veeam
+databricks
+gauges
+zendesk
+sketchup
+namely
+eclipse
+onedrive
+nginx
+semrush
+arcgis
+j2ee
+oracle database
+xero
+notion
+greenhouse
+fedex
+cucumber
+revue
+magento
+stats
+zoho
+webpack
+google drive
+db2
+drupal
+lever
+google tag manager
+chrome
+sqs
+centos
+anchor
+red hat
+zabbix
+google docs
+qlik
+sns
+juniper
+azure data factory
+puppet
+windows 7
+tailwind
+azure sql
+workable
+miro
+drift
+sonarqube
+azure active directory
+thematic
+docusign
+keynote
+harvest
+aws lambda
+ruby on rails
+scikit-learn
+datadog
+cognos
+recharge
+symfony
+smartsheet
+mobilize
+jazzhr
+catia
+compass
+nagios
+okta
+juris
+blender
+appium
+martech
+odoo
+avaya
+testng
+mac os
+hootsuite
+successfactors
+bluebeam
+jboss
+solarwinds
+constant contact
+mariadb
+network solutions
+sap hana
+ecm
+symantec
+final cut pro
+qlikview
+sales navigator
+monday.com
+stripe
+ansys
+mulesoft
+sophos
+bamboo
+netapp
+wireshark
+qgis
+moodle
+openai
+intercom
+cobol
+woocommerce
+avere
+kronos
+uipath
+seismic
+alteryx
+talend
+debian
+ahrefs
+snapchat
+4d
+labview
+gravity
+usps
+mastercard
+android studio
+mockito
+soapui
+dynatrace
+altium
+esri
+verizon
+delphi
+telegram
+paypal
+q4
+xcode
+marketo
+pwc
+simulink
+pardot
+unreal engine
+dropbox
+google data studio
+nielsen
+user interviews
+sqlite
+viewpoint
+stata
+storybook
+veritas
+cerner
+kms
+discord
+oracle ebs
+azure databricks
+xamarin
+g suite
+zoominfo
+amplitude
+windows server 2012
+clickup
+mcafee
+entrata
+airtable
+invision
+cisco asa
+wix
+azure data lake
+circleci
+joomla
+google maps
+mikrotik
+cisco meraki
+cisco routers
+teradata
+openstack
+infinity
+nunit
+sap business one
+zapier
+windows xp
+new relic
+crowdstrike
+webflow
+nutanix
+cisco switches
+sap fico
+klaviyo
+sprout
+qualtrics
+welcome to the
+calendly
+sentry
+testrail
+windows server 2008
+cyberark
+emerson
+google my business
+zephyr
+google meet
+sonicwall
+webs
+oracle pl/sql
+putty
+logstash
+crisp
+pipedrive
+nvidia
+bing ads
+teamviewer
+ey
+camtasia
+prestashop
+xerox
+zebra
+tibco
+sap ariba
+sap hcm
+jcl
+upwork
+cloudflare
+hubspot crm
+robot framework
+sitecore
+hbase
+commvault
+vimeo
+hotjar
+buildout
+emma
+cloudera
+ethereum
+reddit
+tekla
+podium
+at&t
+concord
+articulate storyline
+anaplan
+kaspersky
+discourse
+transcend
+hashicorp
+jira software
+zscaler
+paylocity
+rd station
+aws cloudformation
+screaming frog
+coreldraw
+publica
+brocade
+the org
+sodexo
+squarespace
+widen
+freshdesk
+google bigquery
+sap concur
+control-m
+amazon s3
+myob
+sap analytics cloud
+presidio
+azure monitor
+oracle forms
+perfecto
+appdynamics
+twilio
+basecamp
+agilent
+ivanti
+wonderware
+nuance
+udemy
+google calendar
+knockout
+ibm websphere
+braze
+meditech
+uikit
+f24
+infoblox
+mixpanel
+sap business objects
+lumion
+mitel
+acronis
+windows server 2003
+cegid
+ibm mq
+haproxy
+trend micro
+hugo
+paycom
+needles
+tableau server
+camunda
+polling
+browserstack
+webrtc
+cisco aci
+sap crm
+ceridian
+taleo
+proofpoint
+vero
+pvsyst
+alexa
+westlaw
+clutch
+blackbaud
+ultipro
+cvent
+amazon redshift
+cpanel
+katalon
+bamboohr
+3cx
+telerik
+salesloft
+heartland
+oracle cloud infrastructure
+citrix xenapp
+trustpilot
+affirm
+toast
+loom
+optimizely
+jira service management
+lexisnexis
+sap master data
+watchguard
+liquibase
+tableau desktop
+cashbook
+google classroom
+auth0
+bugzilla
+umbraco
+elastic stack
+contentful
+redcap
+jira service desk
+fiddler
+fiserv
+materialize
+aon
+factorytalk
+duda
+cisco webex
+clef
+typo3
+google forms
+oracle 10g
+onetrust
+dojo
+hikvision
+anydesk
+openvpn
+mckesson
+sendgrid
+vagrant
+ecmascript
+memcached
+trac
+amazon ec2
+oracle 12c
+oracle linux
+hugging face
+bullhorn
+winscp
+azure sentinel
+sourcetree
+inflight
+vercel
+fiverr
+sap netweaver
+amazon advertising
+clio
+avalara
+bigcommerce
+azure stack
+rubrik
+keyshot
+whatsapp business
+sentinelone
+ibm mainframe
+oracle epm
+apple ios
+sap cloud platform
+trivia
+saltstack
+eventbrite
+zbrush
+perkbox
+socket.io
+veracode
+audacity
+revit mep
+qtest
+posh
+oracle business intelligence
+webmethods
+planview
+cisco unified communications
+braintree
+do you dream
+ab initio
+webtrends
+optum
+hp-ux
+cisco voip
+styled-components
+criteo
+iqvia
+three.js
+atlassian confluence
+five9
+citrix netscaler
+cakephp
+msci
+national instruments
+aol
+oracle soa
+sumo
+kyriba
+sparked
+android os
+qnap
+meltwater
+ibm i
+surveymonkey
+bitbucket pipelines
+amazon connect
+mapbox
+open systems
+store manager for
+ukg pro
+oracle hcm cloud
+zillow
+cisco anyconnect
+quora
+apple pay
+lusha
+imovie
+netskope
+tealium
+typeform
+palantir
+activecampaign
+costar
+imperva
+quickbase
+dentrix
+hyperledger
+mobileiron
+tinyurl
+openssl
+vitally
+temenos
+highcharts
+termly
+sap data services
+snagit
+cision
+firebug
+tableau software
+cisco jabber
+kickstarter
+taboola
+comscore
+matomo
+google kubernetes engine
+ekahau
+ibm aix
+livechat
+aws step functions
+forescout
+flock
+cisco umbrella
+avid media composer
+oracle peoplesoft
+deltek costpoint
+ibm sterling
+appfolio
+flywheel
+charles proxy
+irene
+sap plant maintenance
+gimp
+zerto
+ibm tivoli
+oracle fusion middleware
+onpage
+hazelcast
+pendo
+lucanet
+sap supply chain
+algolia
+korn ferry
+google marketing platform
+prezi
+classy
+madcap flare
+kudos
+epic software
+unruly
+aws iot
+plesk
+testflight
+sendinblue
+backbone.js
+eclinicalworks
+saviynt
+arcserve
+bloomberg terminal
+amazon business
+keyword discovery
+opentable
+citrix virtual apps
+the trade desk
+amazon eks
+jobstreet
+pecos
+medidata
+mule esb
+ning
+litmus
+netlify
+lectora
+encase
+sap business warehouse
+jotform
+tumblr
+rsa archer
+apollo.io
+privy
+helioscope
+canvas lms
+klarna
+usertesting
+bitrix24
+freshworks
+campaign monitor
+salsify
+imagej
+sap is-u
+planful
+samsara
+phpmyadmin
+gorgias
+playable
+crunchbase
+aws fargate
+apttus
+outbrain
+alibaba cloud
+visual studio team
+chime
+coinbase
+amazon dynamodb
+google firebase
+walkme
+sap integration suite
+realpage
+sharefile
+google sites
+archibus
+supersonic
+highspot
+ibm filenet
+houzz
+redgate
+sencha
+kaggle
+amazon ecs
+unbounce
+governmentjobs
+plaid
+oracle application express
+oracle retail
+transunion
+factorial
+razorpay
+grass valley
+quip
+amazon emr
+sustainalytics
+weebly
+bloomreach
+akeneo
+cloverleaf
+on24
+dun & bradstreet
+mobaxterm
+elastic cloud
+moengage
+mastercontrol
+demandware
+pantheon
+sap crystal reports
+oracle crm
+tenfold
+clarity ppm
+fullstory
+teamtailor
+responsys
+mailjet
+aws security hub
+nexthink
+applied epic
+everbridge
+google groups
+lodash
+onelogin
+sap successfactors employee
+inkscape
+fishbowl
+windows vista
+muut
+citrix adc
+prebid
+mindbody
+aws backup
+oracle cpq
+arkit
+gotowebinar
+ipro
+oracle utilities
+sps commerce
+amazon cloudwatch
+it glue
+infusionsoft
+egnyte
+xactly
+cisco ironport
+kajabi
+amazon athena
+siteimprove
+atlassian cloud
+adform
+buzzfeed
+quarkxpress
+squish
+genially
+jinja2
+carto
+clickfunnels
+oracle siebel
+google adsense
+cisco collaboration
+formstack
+peoplenet
+aws secrets manager
+dealertrack
+google app engine
+authorize.net
+oracle solaris
+hover
+openstreetmap
+sap controlling
+yext
+customer.io
+pimcore
+lifeworks
+linktree
+azure application gateway
+capterra
+mozilla firefox
+diverse solutions
+eaglesoft
+chargebee
+accela
+aws identity and
+athenahealth
+oracle eloqua
+yola
+google dialogflow
+syndigo
+donorperfect
+arcore
+connectwise automate
+kaltura
+storyblok
+beamer
+teamworks
+pipl
+ibwave
+datatables
+amazon api gateway
+buxton
+ams360
+procare
+liveramp
+lightbox
+yotpo
+google hangouts
+piwik
+wordperfect
+sap extended warehouse
+panopto
+efront
+windows server 2000
+sphera
+resy
+callmanager
+mailerlite
+bluejeans
+vidyard
+culture amp
+patreon
+cornerstone ondemand
+emberjs
+requirejs
+onesignal
+bynder
+nice incontact
+aws direct connect
+azure load balancer
+rsa securid
+coveo
+mailup
+everyaction
+userzoom
+realtor.com
+adroll
+emaint
+my hours
+retail pro
+motus
+mailgun
+techsmith
+tock
+wetransfer
+perma
+sap business planning
+loopnet
+pearson vue
+bazaarvoice
+ableton live
+edirectory
+bmc remedy itsm
+sap financial accounting
+google ai
+cloudinary
+oracle cloud services
+instructure
+filevine
+recaptcha
+gensuite
+skai
+securecrt
+amazon elastic kubernetes
+dalet
+d3js
+foursquare
+zotero
+model n
+mediaocean
+oracle hyperion planning
+sap sales cloud
+hubspot marketing hub
+time matters
+libris
+wpbakery
+afterpay
+oracle financials cloud
+newtek
+prometric
+freshsales
+mavenlink
+honeypot
+alchemer
+aws route53
+gitkraken
+loftware
+slido
+wistia
+amazon vpc
+homecare homebase
+doubleverify
+oracle brm
+atlassian bitbucket
+muck rack
+mri software
+ultimate kronos group
+dynamic yield
+brightsign
+reynolds and reynolds
+stoplight
+sharpspring
+kofax capture
+oracle human capital
+adra
+paychex flex
+duo security
+vevo
+oracle financial services
+lcn
+bugsnag
+swirl
+rollbar
+trulia
+evernote
+benevity
+akamai cdn
+oracle commerce
+hotdocs
+dealcloud
+brainshark
+qualia
+sap hybris commerce
+cinc
+automox
+amazon cloudfront
+azure traffic manager
+aws x-ray
+crazy egg
+mytime
+crossmatch
+google charts
+appnexus
+amazon mq
+yardi systems
+wp engine
+haml
+biba
+genesys purecloud
+tradingview
+freshchat
+time doctor
+abb robotics
+care.com
+google translate
+revinate
+pricefx
+conviva
+garageband
+convertkit
+cosential
+creditsafe
+searchmetrics
+oracle aconex
+flashtalking
+mouseflow
+databox
+flurry
+swaggerhub
+angie's list
+trifacta
+ccrm
+movable ink
+shogun
+gofundme
+openssh
+strato
+amcharts
+rocketreach
+mandrill
+bright horizons
+ibm watson health
+oracle demantra
+intershop
+first advantage
+icontact
+gigya
+victoria metrics
+hubstaff
+crashplan
+callrail
+stackadapt
+mendeley
+wpml
+gleam
+sap logistics execution
+ibm maas360
+demandtools
+xray test management
+toggl
+talentlms
+sap enterprise asset
+volgistics
+coupa procurement
+logrocket
+4me
+sap commissions
+ethicspoint
+bmc patrol
+granicus
+ringlead
+boku
+pubmatic
+engagement hub
+omnibees
+aws key management
+juicer
+goodtime
+help scout
+informacast
+shareasale
+hostinger
+silverstripe
+trustwave
+drata
+quizizz
+bizible
+emc documentum
+zywave
+oracle hospitality
+openresty
+ollydbg
+azure cdn
+amazon ses
+gtreasury
+h&r block
+onfido
+pclaw
+sap customer data
+daptiv
+sapling
+citrix sharefile
+google authenticator
+sendoso
+skyslope
+amazon relational database
+wufoo
+accruent
+vistaprint
+people per hour
+sap sybase
+etools
+amplience
+google wallet
+orientdb
+brightwheel
+emply
+coralogix
+handlebars.js
+iris software
+serrala
+smartlook
+hostgator
+comit
+blueshift
+aweber
+aws elastic load
+evie
+smarsh
+listrak
+amocrm
+fl studio
+oracle warehouse management
+salesmanago
+givesmart
+channeladvisor
+canny
+modern hire
+ioffice
+veris
+apollo global management
+connectwise control
+ibm watson assistant
+1link
+crimson hexagon
+infogram
+ibm cics
+quentic
+reactivex
+clinc
+snovio
+opentsdb
+progress software
+sandler training
+respondus
+citrix xenmobile
+underscore.js
+azure devops projects
+handbrake
+elastic kibana
+birdeye
+digg
+contently
+toptal
+hubspot academy
+tinymce
+clearcare
+soapbox
+patch my pc
+volusion
+restaurant365
+oracle fusion procurement
+destini
+ankorstore
+zocdoc
+blueconic
+jstor
+money guide pro
+accelo
+klipfolio
+ow.ly
+mixmax
+ckeditor
+openclinica
+servicechannel
+phenom people
+amazon simple queue
+oracle project management
+censhare
+branch metrics
+font awesome
+datawatch
+nationbuilder
+exterro
+moment.js
+dealersocket
+lexis advance
+email format
+clearscope
+docsend
+integral ad science
+guestline
+flippingbook
+stardog
+sourceforge
+inmoment
+mootools
+istock
+justgiving
+maxon cinema 4d
+trizetto facets
+jimdo
+ibm spss statistics
+gmass
+siteground
+leadfeeder
+sendpulse
+support hero
+frontline education
+podbean
+wantedly
+hansoft
+oracle marketing cloud
+business wire
+spark hire
+google admob
+lucky orange
+inszoom
+pubnub
+hockeyapp
+codepen
+bioclinica
+libsyn
+jobstart
+amazon simple notification
+wood mackenzie
+nice systems
+winautomation
+appriver
+leanplum
+acuity scheduling
+haptik
+scrivener
+tamr
+ustream
+palo alto next-generation
+hi5
+ecwid
+livongo
+amazon rekognition
+nortel meridian
+serpstat
+flexera one
+tawk.to
+etracker
+google doubleclick
+price manager
+masterpass
+moveworks
+oracle9i
+calyx point
+influitive
+gandi
+bugherd
+ariba commerce
+tapclicks
+cleverreach
+pulsepoint
+zao
+fullcalendar
+simpli.fi
+oracle business process
+monsido
+jw player
+perfect audience
+virtuemart
+smugmug
+alyce
+actimize aml
+formsite
+civicplus
+riskified
+contact form 7
+ketch
+zemanta
+olark
+optinmonster
+partnerstack
+sap manufacturing integration
+thryv
+tidio
+yubico
+signifyd
+sap credit management
+liveagent
+scribd
+varnish cache
+truste
+urban airship
+agile crm
+simplepractice
+boarddocs
+sas data management
+oracle master data
+mopub
+debounce
+google remarketing
+ibm kenexa
+unsplash
+visual website optimizer
+zopim
+vertex cloud
+iadvize
+protonmail
+orion advisor
+firestorm
+eightfold.ai
+socure
+powr
+paymentus
+campbrain
+cisco prime collaboration
+donorbox
+trusted insight
+empower retirement
+instrumentl
+attendance on demand
+trialworks
+pandas python
+sap erp central
+datadome
+boxever
+wordfence
+sociabble
+wp rocket
+gulpjs
+flipsnack
+netvibes
+selectminds
+io technologies
+zylo
+digipass
+revcontent
+calabrio one
+convercent
+amazon opensearch service
+taxdome
+teamsnap
+maestroqa
+speedcurve
+quantros
+rightcapital
+dreamhost
+cisco iot
+gumroad
+sap predictive analytics
+lawpay
+maxmind
+oracle endeca
+mozy
+upslide
+campminder
+select2
+signupgenius
+appsumo
+vendr
+kentico xperience
+limeade
+kinsta
+citrix workspace app
+dreamdata
+hubspot forms
+ibm z series
+teespring
+breezy hr
+pushpay
+casetext
+reviews.io
+eastnets
+id.me
+dragon naturallyspeaking
+ooyala
+media.net
+google sign-in
+herefish
+prophix software
+setmore
+marchex
+feedback company
+swrve
+bentobox
+cadence design systems
+influxdata
+rapidapi
+sojern
+amazon payments
+vbulletin
+iubenda
+refersion
+clicky
+vade secure
+synthetix
+mailpoet
+amicus attorney
+kyruus
+quorum software
+roistat
+pexels
+helpjuice
+oracle data warehousing
+nasdaq nordic
+polyfill
+next jump
+ingeniux
+pros pricing
+pricespider
+demandforce
+lendingclub
+everyonesocial
+modernizr
+amazon machine learning
+theplatform
+thinglink
+oracle knowledge management
+choozle
+fiberlink
+cisive
+jobsoid
+imgur
+tachyons
+ada support
+globenewswire
+relay42
+rubicon project
+salsa crm
+wpforms
+sap afaria
+edsby
+geckoboard
+osano
+floify
+sakon
+aws single sign-on
+phusion passenger
+blue state
+bloomberg vault
+tucows
+give lively
+servicesource
+firehydrant
+eagle eye networks
+metorik
+glds
+inspectlet
+datagrail
+profitwell
+barracuda message archiver
+pixabay
+pbhs
+mathjax
+rave alert
+reconart
+masterbase
+addthis
+skyprep
+telepacific
+cafepress
+kantox
+talkspirit
+akamai dns
+forest admin
+financialforce accounting
+statcounter
+loyaltylion
+big cartel
+infor enterprise asset
+citrix podio
+tvsquared
+phoneburner
+artifi
+genedata biologics
+thrive themes
+salsa engage
+optimonk
+centercode
+sharethrough
+apple icloud
+oracle primavera suite
+govx
+boldchat
+sharethis
+brandmaker
+mopinion
+recruiterbox
+photobucket
+sitelock
+moz local
+sap ecc r/3
+disqus
+reachlocal
+madkudu
+name.com
+oracle data mining
+dns made easy
+readytalk
+sharetribe
+shopper approved
+classmarker
+mcgraw-hill connect
+rebrandly
+calibermind
+smile.io
+monsterinsights
+twik
+register.com
+elfsight
+sirv
+turbolinks
+mangoapps
+opensrs
+interviewstream
+tweenmax
+xenforo
+signrequest
+publitas
+parseur
+dialogtech
+oracle iot
+elastic email
+placester
+manhattan order management
+simplenexus
+urx
+adwerx
+ryver
+marketwired
+google publisher tag
+solvvy
+sas data quality
+firespring
+macabacus
+launchcode
+qualfon
+learnvest
+litespeed web server
+smartsupp
+helpwise
+springer-miller systems
+rackspace email
+fortigate cloud
+passle
+imgix
+fastmail
+gmo internet
+bold commerce
+mentorcliq
+sap fieldglass vendor
+clickcease
+poptin
+revenuewell
+a2 hosting
+simplybook.me
+athenacollector
+squirrelmail
+ca auditor
+synxis central reservation
+callpage
+curve hero
+hello bar
+primavera p6 cloud
+pushowl
+transip
+typekit
+paynearme
+azure translator
+ethnio
+loopme
+snipcart
+foundant technologies
+organimi
+50skills
+123formbuilder
+zift solutions
+attentive mobile
+catalant
+getsitecontrol
+namesilo
+loopia
+first american insurance
+fis data integrity
+bookafy
+kickfire
+godaddy dns
+spinify
+docsify
+infolinks
+chargeafter
+infosec skills
+smartwaiver
+cupix
+stylelabs
+google vpc
+opentext process suite
+reviews.co.uk
+dealer spike
+blizz
+retargeter
+acquiretm
+fathom analytics
+upcall
+convirza
+no-ip
+just host
+sift science
+loyal health
+owl carousel
+script.aculo.us
+nameshield
+goaffpro
+akismet
+pointdrive
+channelsight
+hostway
+audioeye
+sitescout
+buysellads
+vision-box
+register.it
+sendwithus
+black diamond wealth
+fileinvite
+godaddy website builder
+myfonts
+envirosoft
+mimecast gateway
+turnkey lender
+ink for all
+popper.js
+nsone
+growbots
+sap crystal server
+rmail
+tour builder
+clarity ca
+engageware
+securedrop
+glyphicons
+blippar
+pure chat
+amazon workmail
+brandkit
+fast simon
+fundrise
+fastory
+groovehq
+mailchannels
+prosites
+clarity.fm
+inmotion hosting
+taplytics
+web app manifest
+afternic
+showpad coach
+real geeks
+inzpire.me
+temp mail
+sproutloud
+miarec
+ssl.com
+activedemand
+fmgsuite
+icims recruit
+exelate
+kontakt.io
+gumlet
+ariba procurement solutions
+shufflrr
+cardinalcommerce
+the nortridge loan
+google blogger
+meta graph api
+yandex mail
+mailparser
+netregistry
+sesame communications
+hostpapa
+openprovider
+access global group
+ixact contact
+roanoke insurance group
+yoast plugins
+giosg
+helpsite
+smartrmail
+wpmu dev
+eshares
+appboy
+ipinyou
+gfi archiver
+livecall
+targetbay
+emailmeform
+dnsimple
+ip info
+deviceatlas
+spincar
+thomson reuters practice
+webpurify
+neustar ultradns
+oracle billing &
+mailmunch
+hyprmx
+opinion stage
+snap.svg
+ipostal1
+basekit
+sas visual text
+zonka
+oneall
+fellowshipone
+united domains
+mailoptin
+lendfoundry
+sitewit
+dotdigital engagement cloud
+jalbum
+widgetic
+dreamscape networks
+unpkg
+elementor.com
+packery
+glassdoor jobs
+above.com
+anytime mailbox
+easydns
+socketlabs
+hostpoint
+nextgen gallery
+corelogic credco
+123contactform
+silkroad performance
+postcardmania
+total.js
+csod recruiting
+collect.chat
+allencomm
+odesk and elance
+hostmonster
+mux.com
+cm4all
+matelso
+smart moderation
+zoomforth
+re 2.0
+gstatic
+wp smush
+sweetrush
+crelate talent
+regroup mass notification
+heapanalytics
+advertserve
+mobusi
+envira gallery
+forextrader
+mapegy
+bing universal event
+yoose
+childcarecrm
+canddi
+light4
+fermat cad
+wordstream advisor
+namecheap private email
+proboards
+roximity
+keen io
+inline manual
+buysafe
+forcepoint triton apx
+parserr
+agentiq
+ez360
+inwx
+aruba dns
+cdnjs
+sherpadesk
+ibe.net
+commlab india
+sonobi
+sap crystal solutions
+flexslider
+distributor data solutions
+thomson reuters prolaw
+envoy visitors
+ubermenu
+jomsocial
+quantcast measure
+linkminer
+report uri
+jersey watch
+addtoany
+sapenta
+atlassian halp
+digitalocean dns
+flickfusion
+gemalto safenet keysecure
+hubspot website platform
+logrhythm nextgen siem
+help desk migration
+xinnet
+websitebox
+tahometer
+cloudns
+callbackhunter
+ipinfo.io
+visitor queue
+uszoom
+yahoo business mail
+inkxe
+firmseek
+```
+</Accordion>
+
+## Countries
+
+Used by `lead_location` (when the value has no comma) and `company_hq_location`. **209 values.**
+
+<Note>
+  `lead_location` accepts both country names (matched against this list) and full addresses (e.g. `"Paris, France"`). `company_hq_location` accepts country names or full addresses. The presence of a comma routes to the address path.
+</Note>
+
+<Accordion title="Show all countries">
+```
+United States
+Canada
+United Kingdom
+Australia
+Afghanistan
+Albania
+Algeria
+Andorra
+Angola
+Antigua and Barbuda
+Argentina
+Armenia
+Austria
+Azerbaijan
+Bahamas
+Bahrain
+Bangladesh
+Barbados
+Belarus
+Belgium
+Belize
+Benin
+Bhutan
+Bolivia
+Bonaire, Sint Eustatius, and Saba
+Bosnia and Herzegovina
+Botswana
+Brazil
+Brunei
+Bulgaria
+Burkina Faso
+Burundi
+Cabo Verde
+Cambodia
+Cameroon
+Central African Republic
+Chad
+Chile
+China
+Cocos (Keeling) Islands
+Colombia
+Comoros
+Congo
+Costa Rica
+Croatia
+Cuba
+Cyprus
+Czechia
+Côte d'Ivoire
+Democratic Republic of the Congo
+Denmark
+Djibouti
+Dominica
+Dominican Republic
+Ecuador
+Egypt
+El Salvador
+Equatorial Guinea
+Eritrea
+Estonia
+Eswatini
+Ethiopia
+Fiji
+Finland
+France
+Gabon
+Gambia
+Georgia
+Germany
+Ghana
+Greece
+Grenada
+Guatemala
+Guinea
+Guinea-Bissau
+Guyana
+Haiti
+Heard and McDonald Islands
+Holy See
+Honduras
+Hong Kong
+Hungary
+Iceland
+India
+Indonesia
+Iran
+Iraq
+Ireland
+Israel
+Italy
+Jamaica
+Japan
+Jersey
+Jordan
+Kazakhstan
+Kenya
+Kiribati
+Kosovo
+Kuwait
+Kyrgyzstan
+Laos
+Latvia
+Lebanon
+Lesotho
+Liberia
+Libya
+Liechtenstein
+Lithuania
+Luxembourg
+Madagascar
+Malawi
+Malaysia
+Maldives
+Mali
+Malta
+Marshall Islands
+Mauritania
+Mauritius
+Mexico
+Micronesia
+Moldova
+Monaco
+Mongolia
+Montenegro
+Morocco
+Mozambique
+Myanmar
+Namibia
+Nauru
+Nepal
+Netherlands
+New Zealand
+Nicaragua
+Niger
+Nigeria
+North Korea
+North Macedonia
+Norway
+Oman
+Other
+Pakistan
+Palau
+Palestine State
+Panama
+Papua New Guinea
+Paraguay
+Peru
+Philippines
+Poland
+Portugal
+Qatar
+Romania
+Russia
+Rwanda
+Saint Kitts and Nevis
+Saint Lucia
+Saint Pierre and Miquelon
+Saint Vincent and the Grenadines
+Samoa
+San Marino
+Sao Tome and Principe
+Saudi Arabia
+Senegal
+Serbia
+Seychelles
+Sierra Leone
+Singapore
+Slovakia
+Slovenia
+Solomon Islands
+Somalia
+South Africa
+South Georgia and South Sandwich Islands
+South Korea
+South Sudan
+Spain
+Sri Lanka
+Sudan
+Suriname
+Svalbard and Jan Mayen
+Sweden
+Switzerland
+Syria
+Taiwan
+Tajikistan
+Tanzania
+Thailand
+Timor-Leste
+Togo
+Tonga
+Trinidad and Tobago
+Tunisia
+Turkey
+Turkmenistan
+Tuvalu
+U.S. Outlying Islands
+Uganda
+Ukraine
+United Arab Emirates
+Uruguay
+Uzbekistan
+Vanuatu
+Venezuela
+Vietnam
+Wallis and Futuna
+Yemen
+Zambia
+Zimbabwe
+Åland
+```
+</Accordion>

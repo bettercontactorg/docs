@@ -1,0 +1,7 @@
+# Lint rules for api-reference/openapi.json
+# Run locally: npx @redocly/cli@latest lint api-reference/openapi.json
+extends:
+  - recommended
+rules:
+  # BetterContact's API is commercial, it carries no open source license.
+  info-license: off

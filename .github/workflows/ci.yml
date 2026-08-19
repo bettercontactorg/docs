@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Lint the OpenAPI spec
+        run: npx --yes @redocly/cli@latest lint api-reference/openapi.json
+
+      - name: Check navigation and internal links
+        run: node scripts/check-docs.mjs

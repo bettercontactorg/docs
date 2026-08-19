@@ -3,3 +3,21 @@ title: Get Enrichment Results
 description: Retrieve the enrichment results for a specific request ID.
 openapi: 'GET /async/{request_id}'
 ---
+
+<Warning>
+  **Poll on `status`, not on the HTTP status code.**
+
+  While the enrichment is running this endpoint answers `202 Accepted` with a body that has no `data`
+  and no `summary`. Once it is done it answers `200 OK` with `status: "terminated"`.
+
+  Some HTTP clients treat any `2xx` as success, so a naive integration reads an empty `data` and
+  concludes the lead could not be enriched. Always branch on `body.status === "terminated"`.
+
+  See [Request statuses](/api-reference/statuses) for the full lifecycle and a polling recipe.
+</Warning>
+
+<Note>
+  Prefer the `webhook` attribute of [`POST /async`](/api-reference/endpoint/create) over polling.
+  Results are pushed as soon as they are ready, with no rate limit spent.
+  See [Webhooks](/api-reference/webhooks).
+</Note>

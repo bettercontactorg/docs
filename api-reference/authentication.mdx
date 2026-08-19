@@ -1,10 +1,42 @@
 ---
 title: "Authentication"
-description: ""
+description: "One API key, one header, on every endpoint"
 ---
 
-All API endpoints are authenticated using the **X-API-Key** header parameter, which must be provided in the request.
+Every endpoint is authenticated with the **`X-API-Key`** header.
+
+```bash
+curl https://app.bettercontact.rocks/api/v2/account \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+<Warning>
+  It is **not** an `Authorization: Bearer` header. Sending the key that way returns
+  [`401`](/api-reference/errors).
+</Warning>
 
 <Note>
-  This API key can be found [**here**](https://app.bettercontact.rocks/api_requests) in your BetterContact account.
+  Find your API key [here](https://app.bettercontact.rocks/api_requests) in your BetterContact
+  account. You can regenerate or deactivate it from the same screen.
 </Note>
+
+## Base URL
+
+```
+https://app.bettercontact.rocks/api/v2
+```
+
+## Scope of a key
+
+A key identifies one user, but credits are pooled at the organisation level. Two keys belonging to
+the same organisation draw from the same balance, and the [rate limit](/api-reference/api_rate_limits)
+is applied per key.
+
+A `request_id` is only readable with the key that created it. Polling someone else's request returns
+`406` on the enrichment API and `404` on the Lead Finder API, not `401`.
+
+## Keep the key server side
+
+The key grants full access to your credits. Never ship it in front-end code, a mobile app, or a
+public repository. If it leaks, regenerate it from your API settings: the old key stops working
+immediately.

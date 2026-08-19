@@ -1,5 +1,21 @@
 ---
 title: Get a Lead Finder Search results
-description: Get leads from a submitted People Find search.
+description: Get leads from a submitted Lead Finder search.
 openapi: 'GET /lead_finder/async/{request_id}'
 ---
+
+<Warning>
+  **Poll on `status`, not on the HTTP status code.**
+
+  While the search is running this endpoint answers `202 Accepted` with a body that has no `leads`
+  and no `summary`. Once it is done it answers `200 OK` with `status` set to `terminated`,
+  `not_found` or `on_hold`.
+
+  Always branch on `body.status`, never on the HTTP code alone.
+  See [Request statuses](/api-reference/statuses) for the full lifecycle and a polling recipe.
+</Warning>
+
+<Note>
+  Prefer the `webhook` attribute of [`POST /lead_finder/async`](/api-reference/endpoint/lead_finder_post)
+  over polling. See [Webhooks](/api-reference/webhooks).
+</Note>

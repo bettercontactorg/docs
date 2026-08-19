@@ -1,0 +1,89 @@
+---
+title: 'Enrich a company profile'
+description: Look up a single company by domain or LinkedIn URL.
+openapi: 'POST /enrich_profile/company'
+---
+
+<Note>
+  **This endpoint is synchronous and does not consume credits.**
+
+  Unlike the enrichment and Lead Finder APIs, there is no `request_id` and nothing to poll: the
+  company profile comes back in the same response.
+</Note>
+
+Send `company_domain`, `company_linkedin_url`, or both. At least one is required, otherwise the call
+is rejected with `422`.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://app.bettercontact.rocks/api/v2/enrich_profile/company \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "company_domain": "microsoft.com" }'
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://app.bettercontact.rocks/api/v2/enrich_profile/company",
+  {
+    method: "POST",
+    headers: {
+      "X-API-Key": process.env.BETTERCONTACT_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ company_domain: "microsoft.com" }),
+  }
+);
+
+const { success, data } = await res.json();
+```
+
+```python Python
+import os, requests
+
+res = requests.post(
+    "https://app.bettercontact.rocks/api/v2/enrich_profile/company",
+    headers={"X-API-Key": os.environ["BETTERCONTACT_API_KEY"]},
+    json={"company_domain": "microsoft.com"},
+)
+
+company = res.json()["data"]
+```
+
+</CodeGroup>
+
+## Authentication
+
+This endpoint accepts the key **either** in the `X-API-Key` header, like every other endpoint, **or**
+as an `api_key` attribute in the body. The header is the recommended form: it keeps the key out of
+your request payloads and out of your logs.
+
+<Note>
+  This is also the endpoint to use when a Lead Finder search turns out to be a single company
+  lookup: that case is rejected with a `422`. See [Errors](/api-reference/errors).
+</Note>
+
+## What you get back
+
+The response mirrors the `company_*` block of the [Lead Finder](/api-reference/endpoint/lead_finder_get)
+payload, so the same parsing code works on both.
+
+A few fields deserve a note:
+
+| Field | Note |
+| --- | --- |
+| `company_domain` / `company_website` | Always the same value. |
+| `company_type` | Normalised: lowercased, spaces replaced by underscores. `Privately Held` comes back as `privately_held`. |
+| `company_employees_range_start` / `_end` | Parsed from the size range. `11-50` gives `11` and `50`. An open ended range such as `10000+` sets the start only and leaves the end `null`. |
+| `company_head_quarters_city` and the `company_address_*` fields | May be an **empty string** rather than `null` when the source has no value. Test for emptiness, not just for `null`. |
+| `company_keywords` | An array of strings, not a comma separated string. |
+
+<Warning>
+  Every other `company_*` key from the Lead Finder payload is present in the response and always
+  `null`. They are kept for payload compatibility, so do not read anything into them.
+
+  Landbase specific attributes such as `revenue`, `is_b2b` and `technologies_used` are **not**
+  returned by this endpoint. You can still filter on them through
+  [Lead Finder](/api-reference/endpoint/lead_finder_post).
+</Warning>

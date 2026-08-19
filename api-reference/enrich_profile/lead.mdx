@@ -1,0 +1,111 @@
+---
+title: 'Enrich a lead profile'
+description: Look up a single person and get their profile and current company.
+openapi: 'POST /enrich_profile/lead'
+---
+
+<Note>
+  **This endpoint is synchronous. It costs 0.1 credit per profile found**, and nothing when no
+  profile matches.
+
+  There is no `request_id` and nothing to poll: the profile comes back in the same response. Expect
+  a couple of seconds.
+</Note>
+
+<Warning>
+  This endpoint returns **profile data only**. It never returns an email address or a phone number.
+  For contact data, use [Enrich leads](/api-reference/endpoint/create).
+</Warning>
+
+## Identifying the lead
+
+There are two ways in, and they are not equivalent.
+
+<CardGroup cols={2}>
+  <Card title="By LinkedIn URL" icon="linkedin" iconType="solid">
+    Send `linkedin_url` alone. This is the most reliable form and the one to prefer whenever you have
+    the URL.
+  </Card>
+  <Card title="By name and company" icon="user-magnifying-glass" iconType="solid">
+    Send `first_name`, `last_name` and `company_domain` together. All three are required.
+  </Card>
+</CardGroup>
+
+<Warning>
+  **`company_domain` is required in the second form, a company name is not enough.** Sending
+  `first_name` + `last_name` + `company` without `company_domain` is rejected with `422`. You can
+  send `company` in addition to `company_domain`, but never instead of it.
+</Warning>
+
+When `linkedin_url` is present the other attributes are ignored.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://app.bettercontact.rocks/api/v2/enrich_profile/lead \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "linkedin_url": "https://www.linkedin.com/in/veronick-martinuzzi-a4533373" }'
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://app.bettercontact.rocks/api/v2/enrich_profile/lead",
+  {
+    method: "POST",
+    headers: {
+      "X-API-Key": process.env.BETTERCONTACT_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      linkedin_url: "https://www.linkedin.com/in/veronick-martinuzzi-a4533373",
+    }),
+  }
+);
+
+const { success, data } = await res.json();
+if (!success) throw new Error("Lookup failed");
+```
+
+```python Python
+import os, requests
+
+res = requests.post(
+    "https://app.bettercontact.rocks/api/v2/enrich_profile/lead",
+    headers={"X-API-Key": os.environ["BETTERCONTACT_API_KEY"]},
+    json={"first_name": "Veronick", "last_name": "Martinuzzi", "company_domain": "hondaresearch.com"},
+)
+
+body = res.json()
+if not body["success"]:
+    raise RuntimeError(body["error"])
+
+profile = body["data"]
+```
+
+</CodeGroup>
+
+## Authentication
+
+The key goes **either** in the `X-API-Key` header, like every other endpoint, **or** as an `api_key`
+attribute in the body. The header is the recommended form: it keeps the key out of your request
+payloads and out of your logs.
+
+## What you get back
+
+25 fields describing the person and their current company. Unlike the enrichment and Lead Finder
+payloads, there are **no extra always-null legacy keys**: what you see is the whole response.
+
+A few fields deserve a note:
+
+| Field | Note |
+| --- | --- |
+| `contact_linkedin_headline` | Often an **empty string** rather than `null` when the profile has no headline. |
+| `contact_location_continent` / `_city` | Frequently `null` even when country and state are filled. Do not assume the location block is all-or-nothing. |
+| `company_headquarters_city` | Can carry a full street address rather than a bare city name. |
+| `company_employees_range_end` | `null` on open ended ranges: a company in `10001+` has a start and no end. |
+| `company_keywords` | An array of strings, not a comma separated string. |
+| `company_type`, `company_founded_year` | Frequently `null`. |
+
+Values are capitalised on the way out, which is why a job title comes back as
+`Development solutions sr. principal engineer` rather than in its original casing.
