@@ -619,7 +619,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Profile found. Also returned with `success: false` when an unexpected error occurs, so always read `success`.",
+            "description": "Profile found.",
             "content": {
               "application/json": {
                 "schema": {

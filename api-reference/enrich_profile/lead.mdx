@@ -96,12 +96,6 @@ payloads and out of your logs.
 25 fields describing the person and their current company. Unlike the enrichment and Lead Finder
 payloads, there are **no extra always-null legacy keys**: what you see is the whole response.
 
-<Warning>
-  **Always read `success`, do not rely on the HTTP status alone.** An unexpected internal failure
-  comes back as `200 OK` with `success: false` and an `error` message, so a client that only checks
-  `response.ok` will treat the failure as a hit and read an absent `data`.
-</Warning>
-
 A few fields deserve a note:
 
 | Field | Note |
